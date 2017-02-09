@@ -87,3 +87,8 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+temp/*
+dist/*
+build/*
+Minos.egg-info
