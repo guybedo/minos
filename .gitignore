@@ -88,6 +88,9 @@ ENV/
 # Rope project settings
 .ropeproject
 
+.project
+.pydevproject
+
 temp/*
 dist/*
 build/*
