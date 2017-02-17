@@ -11,8 +11,14 @@ from minos.model.parameter import int_param, string_param, boolean_param,\
 reference_parameters = {
     'layout': {
         'rows': int_param(lo=1, hi=3, default=1),
-        'bricks': int_param(lo=1, hi=3, default=1),
-        'blocks': int_param(lo=1, hi=5, default=1)
+        'blocks': int_param(lo=1, hi=5, default=1),
+        'layers': int_param(lo=1, hi=5, default=1),
+        'block': {
+            'input_type': string_param([
+                'concat',
+                'random+concat',
+                'concat+random'], default='concat'),
+            'input_size': float_param(default=1.)}
     },
     'layers': {
         'Dense': {
@@ -38,7 +44,8 @@ reference_parameters = {
                  'tanh',
                  'sigmoid',
                  'hard_sigmoid',
-                 'linear']),
+                 'linear'],
+                default='relu'),
             'bias': boolean_param(default=True),
             'W_regularizer': {
                 'l1': float_param(optional=True),
@@ -57,9 +64,49 @@ reference_parameters = {
                 default=None)
         },
         'Dropout': {
-            'p': float_param()},
+            'p': float_param(default=0.75)},
         'Merge': {
-            'mode': string_param(['sum', 'mul', 'concat', 'ave', 'cos', 'dot', 'max'])}
+            'mode': string_param(
+                ['sum', 'mul', 'concat', 'ave', 'cos', 'dot', 'max'],
+                default='concat')},
+        'BatchNormalization': {
+            'epsilon': float_param(default=0.001),
+            'mode': int_param(values=[0, 1, 2], default=0),
+            'axis': int_param(default=1),
+            'momentum': float_param(default=0.99),
+            'beta_init': string_param(
+                ['uniform',
+                 'lecun_uniform',
+                 'normal'
+                 'identity',
+                 'orthogonal',
+                 'zero',
+                 'one',
+                 'glorot_normal',
+                 'glorot_uniform',
+                 'he_normal',
+                 'he_uniform'],
+                default='glorot_normal'),
+            'gamma_init': string_param(
+                ['uniform',
+                 'lecun_uniform',
+                 'normal'
+                 'identity',
+                 'orthogonal',
+                 'zero',
+                 'one',
+                 'glorot_normal',
+                 'glorot_uniform',
+                 'he_normal',
+                 'he_uniform'],
+                default='glorot_normal'),
+            'gamma_regularizer': {
+                'l1': float_param(optional=True),
+                'l2': float_param(optional=True)},
+            'beta_regularizer': {
+                'l1': float_param(optional=True),
+                'l2': float_param(optional=True)}
+        }
     },
     'optimizers': {
         'SGD': {

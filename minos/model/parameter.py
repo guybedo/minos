@@ -13,7 +13,7 @@ rand = Random()
 
 class ParameterConstraint(object):
 
-    levels = ['row', 'brick', 'block', 'layer']
+    levels = ['row', 'block', 'layer']
 
     def __init__(self, namespace_id, name, value, **kwargs):
         self.namespace_id = namespace_id
@@ -59,6 +59,14 @@ def param_path(_id):
     return _id.split('.')
 
 
+def expand_param_path(path):
+    path = [
+        e
+        for p in path
+        for e in p.split('.')]
+    return path
+
+
 def boolean_param(default=None, optional=False):
     return Parameter(
         bool,
@@ -90,6 +98,14 @@ def int_param(lo=0, hi=100, default=1, values=None, optional=False):
 def string_param(values, default=None, optional=False):
     return Parameter(
         str,
+        values=values,
+        default=default,
+        optional=optional)
+
+
+def param(values, default=None, optional=False):
+    return Parameter(
+        dict,
         values=values,
         default=default,
         optional=optional)

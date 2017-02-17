@@ -6,7 +6,8 @@ Created on Feb 7, 2017
 import unittest
 
 from minos.experiment.experiment import ExperimentParameters
-from minos.model.parameter import random_param_value, int_param, float_param
+from minos.model.parameter import random_param_value, int_param, float_param,\
+    string_param
 from minos.model.parameters import reference_parameters
 
 
@@ -17,8 +18,26 @@ class ParametersTest(unittest.TestCase):
         for layer in reference_parameters['layers'].keys():
             for name, _value in reference_parameters['layers'][layer].items():
                 self.assertIsNotNone(
-                    experiment_parameters.get_layer_parameter(layer, name),
-                    'Parameter %s should exist' % name)
+                    experiment_parameters.get_layer_parameter('%s.%s' % (layer, name)),
+                    'Parameter %s should exist for layer %s' % (name, layer))
+
+    def test_custom_parameters(self):
+        experiment_parameters = ExperimentParameters()
+        experiment_parameters.layout_parameter('blocks', int_param(1, 10))
+        param = experiment_parameters.get_layout_parameter('blocks')
+        self.assertTrue(
+            1 == param.lo and 10 == param.hi,
+            'Should have set values')
+        experiment_parameters.layout_parameter('layers', int_param(1, 3))
+        param = experiment_parameters.get_layout_parameter('layers')
+        self.assertTrue(
+            1 == param.lo and 3 == param.hi,
+            'Should have set values')
+        experiment_parameters.layer_parameter('Dense.activation', string_param(['relu', 'tanh']))
+        param = experiment_parameters.get_layer_parameter('Dense.activation')
+        self.assertTrue(
+            'relu' == param.values[0] and 'tanh' == param.values[1],
+            'Should have set values')
 
     def test_random_value(self):
         param = int_param(values=list(range(10)))
