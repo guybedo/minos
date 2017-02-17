@@ -47,7 +47,7 @@ class ExperimentParameters(object):
 
     def _init_default_values(self, node):
         if isinstance(node, Parameter):
-            if node.default is not None:
+            if node.default is not None or node.optional:
                 return node.default
         else:
             for name, value in node.items():

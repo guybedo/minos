@@ -14,7 +14,7 @@ from minos.model.parameters import reference_parameters
 class ParametersTest(unittest.TestCase):
 
     def test_parameters(self):
-        experiment_parameters = ExperimentParameters()
+        experiment_parameters = ExperimentParameters(use_default_values=False)
         for layer in reference_parameters['layers'].keys():
             for name, _value in reference_parameters['layers'][layer].items():
                 self.assertIsNotNone(

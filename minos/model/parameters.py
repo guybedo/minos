@@ -48,20 +48,22 @@ reference_parameters = {
                 default='relu'),
             'bias': boolean_param(default=True),
             'W_regularizer': {
-                'l1': float_param(optional=True),
-                'l2': float_param(optional=True)},
+                'l1': float_param(optional=True, default=None),
+                'l2': float_param(optional=True, default=None)},
             'b_regularizer': {
-                'l1': float_param(optional=True),
-                'l2': float_param(optional=True)},
+                'l1': float_param(optional=True, default=None),
+                'l2': float_param(optional=True, default=None)},
             'activity_regularizer': {
-                'l1': float_param(optional=True),
-                'l2': float_param(optional=True)},
+                'l1': float_param(optional=True, default=None),
+                'l2': float_param(optional=True, default=None)},
             'W_constraint': string_param(
-                [None, 'maxnorm', 'nonneg', 'unitnorm'],
-                default=None),
+                ['maxnorm', 'nonneg', 'unitnorm'],
+                default=None,
+                optional=True),
             'b_constraint': string_param(
-                [None, 'maxnorm', 'nonneg', 'unitnorm'],
-                default=None)
+                ['maxnorm', 'nonneg', 'unitnorm'],
+                default=None,
+                optional=True)
         },
         'Dropout': {
             'p': float_param(default=0.75)},
@@ -101,11 +103,11 @@ reference_parameters = {
                  'he_uniform'],
                 default='glorot_normal'),
             'gamma_regularizer': {
-                'l1': float_param(optional=True),
-                'l2': float_param(optional=True)},
+                'l1': float_param(optional=True, default=None),
+                'l2': float_param(optional=True, default=None)},
             'beta_regularizer': {
-                'l1': float_param(optional=True),
-                'l2': float_param(optional=True)}
+                'l1': float_param(optional=True, default=None),
+                'l2': float_param(optional=True, default=None)}
         }
     },
     'optimizers': {
