@@ -11,7 +11,7 @@ from minos.experiment.training import Training
 from minos.model.model import Layout, Row, Layer, Block,\
     Optimizer
 from minos.model.parameter import random_param_value, str_param_name,\
-    random_list_element, Parameter, mutate_param
+    random_list_element, mutate_param
 
 
 rand = Random()
@@ -217,7 +217,8 @@ def _mutate_layout_layers(layout, parameters):
     if new_layers > current_layers:
         for _ in range(current_layers, new_layers):
             layers = get_allowed_new_block_layers(block.layers)
-            block.layers.append(random_list_element(layers))
+            layer = random_list_element(layers)
+            block.layers.append(Layer(layer, dict()))
     else:
         while len(block.layers) > new_layers:
             idx = rand.randint(0, len(block.layers) - 1)
@@ -235,6 +236,8 @@ def _mutate_parameters(layout, parameters, p_mutate_param=0.1):
 
 
 def _mutate_layer(layer, parameters, p_mutate_param=0.1):
+    if isinstance(layer, str):
+        pass
     param_space = deepcopy(parameters.get_layer_parameters(layer.layer_type))
     for name, value in layer.parameters.items():
         if rand.random() < p_mutate_param:

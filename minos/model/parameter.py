@@ -133,13 +133,20 @@ def is_valid_param_value(param, value):
 
 
 def mutate_param(param, value):
+    if isinstance(param, dict):
+        return {
+            name: mutate_param(nested, value.get(name, None))
+            for name, nested in param.items()}
     if not isinstance(param, Parameter):
         return value
+    if param.optional and rand.random() < 0.5:
+        return None
     if param.values:
         element = random_list_element(param.values)
         while element == value:
             element = random_list_element(param.values)
         return element
+    value = value or 0
     std = (param.hi - param.lo) / 2
     new_value = param.param_type(numpy.random.normal(value, std, 1)[0])
     while not is_valid_param_value(param, new_value) or new_value == value:
