@@ -71,8 +71,6 @@ def _apply_parameters_to_layout(layout, experiment_parameters):
 
 def _set_layer_random_parameters(layer, experiment_parameters):
     param_space = deepcopy(experiment_parameters.get_layer_parameters(layer.layer_type))
-    if not param_space:
-        pass
     param_space.update(layer.parameters)
     layer.parameters = {
         name: random_param_value(param)
@@ -144,7 +142,7 @@ def get_allowed_new_block_layers(layers):
 
 
 def mutate_blueprint(blueprint, parameters,
-                     p_mutate_layout=0.25, p_mutate_param=0.5,
+                     p_mutate_layout=0.25, p_mutate_param=0.1,
                      layout_mutation_count=1, layout_mutables=None, mutate_in_place=True):
     if not mutate_in_place:
         blueprint = deepcopy(blueprint)
@@ -154,6 +152,10 @@ def mutate_blueprint(blueprint, parameters,
             parameters,
             mutables=layout_mutables,
             mutation_count=layout_mutation_count)
+    _mutate_parameters(
+        blueprint.layout,
+        parameters,
+        p_mutate_param=p_mutate_param)
     return blueprint
 
 
@@ -223,6 +225,20 @@ def _mutate_layout_layers(layout, parameters):
                 l
                 for i, l in enumerate(block.layers)
                 if i != idx]
+
+
+def _mutate_parameters(layout, parameters, p_mutate_param=0.1):
+    for row in layout.rows:
+        for block in row.blocks:
+            for layer in block.layers:
+                _mutate_layer(layer, parameters, p_mutate_param)
+
+
+def _mutate_layer(layer, parameters, p_mutate_param=0.1):
+    param_space = deepcopy(parameters.get_layer_parameters(layer.layer_type))
+    for name, value in layer.parameters.items():
+        if rand.random() < p_mutate_param:
+            layer.parameters[name] = mutate_param(param_space[name], value)
 
 
 def mix_blueprints(blueprint1, blueprint2, parameters, p_mutate_param=0.1):

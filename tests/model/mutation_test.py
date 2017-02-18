@@ -66,6 +66,45 @@ class MutationTest(unittest.TestCase):
                 len(mutant.layout.get_layers()) != len(blueprint.layout.get_layers()),
                 'Should have mutated layers')
 
+    def test_mutate_parameters(self):
+        layout = Layout(
+            input_size=100,
+            output_size=10,
+            output_activation='softmax')
+        training = Training(
+            objective=None,
+            optimizer=None,
+            metric=None,
+            stopping=None,
+            batch_size=None)
+        experiment = Experiment(
+            'test',
+            layout,
+            training,
+            batch_iterator=None,
+            test_batch_iterator=None,
+            environment=None,
+            parameters=ExperimentParameters(use_default_values=False))
+        for _ in range(50):
+            blueprint = create_random_blueprint(experiment)
+            mutant = mutate_blueprint(
+                blueprint,
+                parameters=experiment.parameters,
+                p_mutate_layout=0,
+                p_mutate_param=1,
+                mutate_in_place=False)
+
+            for row_idx, row in enumerate(mutant.layout.rows):
+                for block_idx, block in enumerate(row.blocks):
+                    for layer_idx, layer in enumerate(block.layers):
+                        original_row = blueprint.layout.rows[row_idx]
+                        original_block = original_row.blocks[block_idx]
+                        original_layer = original_block.layers[layer_idx]
+                        for name, value in layer.parameters.items():
+                            self.assertTrue(
+                                value != original_layer.parameters[name],
+                                'Should have mutated parameter')
+
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
