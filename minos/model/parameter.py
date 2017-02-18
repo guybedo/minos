@@ -7,6 +7,8 @@ Created on Feb 8, 2017
 from inspect import isfunction, isclass
 from random import Random
 
+import numpy
+
 
 rand = Random()
 
@@ -130,6 +132,21 @@ def is_valid_param_value(param, value):
     return True
 
 
+def mutate_param(param, value):
+    if not isinstance(param, Parameter):
+        return value
+    if param.values:
+        element = random_list_element(param.values)
+        while element == value:
+            element = random_list_element(param.values)
+        return element
+    std = (param.hi - param.lo) / 2
+    new_value = param.param_type(numpy.random.normal(value, std, 1)[0])
+    while not is_valid_param_value(param, new_value) or new_value == value:
+        new_value = param.param_type(numpy.random.normal(value, std, 1)[0])
+    return new_value
+
+
 def _is_optional_param(param):
     return isinstance(param, Parameter) and param.optional
 
@@ -166,7 +183,7 @@ def random_param_value(param):
         return param
     value = 0
     if param.values:
-        value = param.values[rand.randint(0, len(param.values) - 1)]
+        value = random_list_element(param.values)
     elif param.lo is not None and param.hi is not None:
         value = param.lo + (rand.random() * (param.hi - param.lo))
     elif param.lo is not None:
@@ -174,3 +191,7 @@ def random_param_value(param):
     elif param.hi is not None:
         value = rand.random() * param.hi
     return param.param_type(value)
+
+
+def random_list_element(elements):
+    return elements[rand.randint(0, len(elements) - 1)]

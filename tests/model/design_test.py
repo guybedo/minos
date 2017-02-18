@@ -9,7 +9,7 @@ from keras.layers.core import Dense, Dropout
 
 from minos.experiment.experiment import Experiment, ExperimentParameters
 from minos.experiment.training import Training
-from minos.model.design import create_random_blueprint
+from minos.model.design import create_random_blueprint, mutate_blueprint
 from minos.model.model import Optimizer, Layout
 from minos.model.parameter import is_valid_param_value, str_param_name
 
