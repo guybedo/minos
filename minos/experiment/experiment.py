@@ -107,10 +107,10 @@ class ExperimentParameters(object):
             ['optimizers', name],
             value)
 
-    def get_optimizer_parameter(self, name):
+    def get_optimizer_parameters(self, name):
         return self.get_parameter('optimizers', name)
 
-    def get_optimizer_parameters(self):
+    def get_optimizers_parameters(self):
         return self.get_parameter('optimizers')
 
 

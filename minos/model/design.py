@@ -34,7 +34,7 @@ def _random_training(experiment):
 
 
 def _random_optimizer(optimizer, experiment_parameters):
-    ref_parameters = experiment_parameters.get_optimizer_parameters()
+    ref_parameters = experiment_parameters.get_optimizers_parameters()
     optimizer_id = optimizer.optimizer if optimizer else None
     if not optimizer_id:
         optimizers = list(ref_parameters.keys())
@@ -152,9 +152,13 @@ def mutate_blueprint(blueprint, parameters,
             parameters,
             mutables=layout_mutables,
             mutation_count=layout_mutation_count)
-    _mutate_parameters(
+    _mutate_layer_parameters(
         blueprint.layout,
         parameters,
+        p_mutate_param=p_mutate_param)
+    _mutate_optimizer(
+        blueprint.training.optimizer, 
+        parameters, 
         p_mutate_param=p_mutate_param)
     return blueprint
 
@@ -228,7 +232,7 @@ def _mutate_layout_layers(layout, parameters):
                 if i != idx]
 
 
-def _mutate_parameters(layout, parameters, p_mutate_param=0.1):
+def _mutate_layer_parameters(layout, parameters, p_mutate_param=0.1):
     for row in layout.rows:
         for block in row.blocks:
             for layer in block.layers:
@@ -236,13 +240,67 @@ def _mutate_parameters(layout, parameters, p_mutate_param=0.1):
 
 
 def _mutate_layer(layer, parameters, p_mutate_param=0.1):
-    if isinstance(layer, str):
-        pass
     param_space = deepcopy(parameters.get_layer_parameters(layer.layer_type))
     for name, value in layer.parameters.items():
         if rand.random() < p_mutate_param:
             layer.parameters[name] = mutate_param(param_space[name], value)
 
+def _mutate_optimizer(optimizer, parameters, p_mutate_param=0.1):
+    param_space = deepcopy(parameters.get_optimizer_parameters(optimizer.optimizer))
+    for name, value in optimizer.parameters.items():
+        if rand.random() < p_mutate_param:
+            optimizer.parameters[name] = mutate_param(param_space[name], value)
+            
 
-def mix_blueprints(blueprint1, blueprint2, parameters, p_mutate_param=0.1):
-    pass
+
+def mix_blueprints(blueprint1, blueprint2, parameters, p_mutate_param=0.05):
+    parents = [blueprint1.layout, blueprint2.layout]
+    layout = _mix_layouts(parents, parameters, p_mutate_param)
+    parents = [blueprint1.training, blueprint2.training]
+    training = _mix_trainings(parents, parameters, p_mutate_param)
+    return Blueprint(layout, training)
+
+
+def _mix_trainings(parents, parameters, p_mutate_param=0.05):
+    training = Training(
+        objective=parents[0].objective,
+        optimizer=None,
+        metric=parents[0].metric,
+        stopping=parents[0].stopping,
+        batch_size=parents[0].batch_size)
+    training.optimizer = _mix_optimizers([p.optimizer for p in parents])
+    _mutate_optimizer(training.optimizer, parameters, p_mutate_param)
+    return training
+
+
+def _mix_optimizers(parents):
+    return deepcopy(random_list_element(parents))
+
+
+def _mix_layouts(parent_layouts, parameters, p_mutate_param=0.05):
+    layout = Layout(
+        input_size=parent_layouts[0].input_size,
+        output_size=parent_layouts[0].output_size,
+        output_activation=parent_layouts[0].output_activation,
+        block=parent_layouts[0].block,
+        block_input=parent_layouts[0].block_input,
+        rows=parent_layouts[0].rows)
+    rows = random_list_element([len(p.rows) for p in parent_layouts])
+    for row_idx in range(rows):
+        parent_rows = [p.rows[row_idx] for p in parent_layouts if row_idx < len(p.rows)]
+        layout.rows.append(_mix_row(parent_rows))
+    _mutate_layer_parameters(
+        layout,
+        parameters,
+        p_mutate_param=p_mutate_param)
+    return layout
+
+
+def _mix_row(parent_rows):
+    row = Row()
+    blocks = random_list_element([len(p.blocks) for p in parent_rows])
+    for block_idx in range(blocks):
+        parent_blocks = [p.blocks[block_idx] for p in parent_rows if block_idx < len(p.blocks)]
+        parent = random_list_element(parent_blocks)
+        row.blocks.append(deepcopy(parent))
+    return row

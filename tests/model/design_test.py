@@ -43,7 +43,7 @@ class DesignTest(unittest.TestCase):
             self.assertIsNotNone(
                 optimizer.optimizer,
                 'Should have created an optimizer')
-            ref_parameters = experiment.parameters.get_optimizer_parameters()
+            ref_parameters = experiment.parameters.get_optimizers_parameters()
             for name, param in ref_parameters[optimizer.optimizer].items():
                 self.assertTrue(
                     is_valid_param_value(param, optimizer.parameters[name]),
