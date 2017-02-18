@@ -22,12 +22,13 @@ reference_parameters = {
     },
     'layers': {
         'Dense': {
+            'output_dim': int_param(1, 1000),
             'init': string_param(
                 ['uniform',
                  'lecun_uniform',
-                 'normal'
-                 'identity',
-                 'orthogonal',
+                 'normal',
+                 # 'identity',
+                 # 'orthogonal',
                  'zero',
                  'one',
                  'glorot_normal',
@@ -36,8 +37,7 @@ reference_parameters = {
                  'he_uniform'],
                 default='glorot_normal'),
             'activation': string_param(
-                [None,
-                 'softmax',
+                ['softmax',
                  'softplus',
                  'softsign',
                  'relu',
@@ -73,15 +73,13 @@ reference_parameters = {
                 default='concat')},
         'BatchNormalization': {
             'epsilon': float_param(default=0.001),
-            'mode': int_param(values=[0, 1, 2], default=0),
-            'axis': int_param(default=1),
             'momentum': float_param(default=0.99),
             'beta_init': string_param(
                 ['uniform',
                  'lecun_uniform',
-                 'normal'
-                 'identity',
-                 'orthogonal',
+                 'normal',
+                 # 'identity',
+                 # 'orthogonal',
                  'zero',
                  'one',
                  'glorot_normal',
@@ -92,9 +90,9 @@ reference_parameters = {
             'gamma_init': string_param(
                 ['uniform',
                  'lecun_uniform',
-                 'normal'
-                 'identity',
-                 'orthogonal',
+                 'normal',
+                 # 'identity',
+                 # 'orthogonal',
                  'zero',
                  'one',
                  'glorot_normal',
