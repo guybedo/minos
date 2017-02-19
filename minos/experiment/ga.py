@@ -51,5 +51,10 @@ class GaBlueprint(Blueprint, GaIndividual):
         return GaBlueprint.copy(self)
 
 
-def run_ga_search_experiment(experiment):
-    search(GaModelExperiment(experiment))
+def run_ga_search_experiment(experiment, population_size=50,
+                             generations=100, resume=False):
+    search(
+        GaModelExperiment(experiment),
+        population_size=population_size,
+        generations=generations,
+        resume=resume)
