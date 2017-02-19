@@ -29,13 +29,14 @@ class ParameterConstraint(object):
 class Parameter(object):
 
     def __init__(self, param_type, values=None,
-                 lo=None, hi=None, default=None, optional=False):
+                 lo=None, hi=None, default=None, optional=False, mutable=True):
         self.param_type = param_type
         self.values = values
         self.lo = lo
         self.hi = hi
         self.default = default
         self.optional = optional
+        self.mutable = mutable
 
 
 class Function(object):
@@ -97,12 +98,13 @@ def int_param(lo=0, hi=100, default=1, values=None, optional=False):
         optional=optional)
 
 
-def string_param(values, default=None, optional=False):
+def string_param(values, default=None, optional=False, mutable=True):
     return Parameter(
         str,
         values=values,
         default=default,
-        optional=optional)
+        optional=optional,
+        mutable=mutable)
 
 
 def param(values, default=None, optional=False):

@@ -13,6 +13,7 @@ from minos.experiment.ga import run_ga_search_experiment
 from minos.experiment.training import Training, EpochStoppingCondition
 from minos.model.build import ModelBuilder
 from minos.model.model import Layout, Objective, Metric, Optimizer
+from minos.model.parameter import int_param
 from minos.train.utils import CpuEnvironment, cpu_device, Environment
 from tests.fixtures import get_reuters_dataset
 
@@ -37,6 +38,7 @@ class GaSearchTest(unittest.TestCase):
             experiment_parameters.layout_parameter('rows', 1)
             experiment_parameters.layout_parameter('blocks', 1)
             experiment_parameters.layout_parameter('layers', 1)
+            experiment_parameters.layer_parameter('Dense.output_dim', int_param(10, 500))
 
             experiment_label = 'test__reuters_experiment'
             experiment = Experiment(

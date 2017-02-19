@@ -76,7 +76,7 @@ def _build_layer_model(inputs, layer):
         parameters = _build_layer_parameters(layer)
         return model(**parameters)(inputs)
     except Exception as ex:
-        logging.error(traceback.format_exc())
+        logging.debug(traceback.format_exc())
         raise ex
 
 

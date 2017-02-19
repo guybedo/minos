@@ -70,7 +70,8 @@ reference_parameters = {
         'Merge': {
             'mode': string_param(
                 ['sum', 'mul', 'concat', 'ave', 'cos', 'dot', 'max'],
-                default='concat')},
+                default='concat',
+                mutable=False)},
         'BatchNormalization': {
             'epsilon': float_param(default=0.001),
             'momentum': float_param(default=0.99),
