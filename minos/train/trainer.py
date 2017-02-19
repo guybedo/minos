@@ -83,10 +83,15 @@ class ModelTrainer(object):
 
     def train(self, blueprint, device_id, device):
         try:
-            disable_sysout()
             model = self.model_builder.build(
                 blueprint,
                 get_logical_device(device))
+        except Exception as ex:
+            logging.warning('invalid model')
+            return 0, blueprint, 0, device_id
+
+        try:
+            disable_sysout()
             self._setup_tf(device)
             nb_epoch, stopping_callbacks = self._get_stopping_parameters(blueprint)
             start = time()
