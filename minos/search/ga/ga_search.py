@@ -122,7 +122,8 @@ def search(experiment, population_size=50,
         _get_log_filename(
             experiment.environment.data_dir,
             experiment.label),
-        log_level)
+        log_level,
+        resume=resume)
     init_ga_env(experiment)
     population = None
     population_filename = _get_population_filename(

@@ -4,6 +4,8 @@ Created on Feb 12, 2017
 @author: julien
 '''
 from logging.config import dictConfigClass
+from os.path import isfile
+from posix import remove
 import sys
 
 
@@ -11,7 +13,9 @@ def disable_sysout():
     sys.stdout.write = lambda s: s
 
 
-def setup_logging(filename, level='INFO'):
+def setup_logging(filename, level='INFO', resume=False):
+    if not resume and isfile(filename):
+        remove(filename)
     print('Logging to %s, level=%s' % (filename, level))
     logging_configuration = {
         'version': 1,
