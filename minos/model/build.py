@@ -18,12 +18,13 @@ class ModelBuilder(object):
     def __init__(self):
         pass
 
-    def build(self, blueprint, device):
+    def build(self, blueprint, device, compile_model=True):
         model = _build_model(blueprint, device)
-        model.compile(
-            optimizer=_build_optimizer(blueprint.training),
-            loss=blueprint.training.objective.objective,
-            metrics=[blueprint.training.metric.metric])
+        if compile_model:
+            model.compile(
+                optimizer=_build_optimizer(blueprint.training),
+                loss=blueprint.training.objective.objective,
+                metrics=[blueprint.training.metric.metric])
         return model
 
 

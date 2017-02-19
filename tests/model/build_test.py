@@ -10,7 +10,7 @@ from minos.experiment.training import Training, EpochStoppingCondition
 from minos.model.build import ModelBuilder
 from minos.model.design import create_random_blueprint
 from minos.model.model import Layout, Objective, Metric
-from build.lib.minos.train.utils import cpu_device
+from minos.train.utils import cpu_device
 
 
 class BuildTest(unittest.TestCase):

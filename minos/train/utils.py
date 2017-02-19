@@ -55,11 +55,11 @@ def get_device_idx(device):
 
 class Environment(object):
 
-    def __init__(self, devices, n_jobs,
+    def __init__(self, devices=None, n_jobs=None,
                  data_dir=None, tf_logging_level=tf.logging.ERROR):
         self.devices = devices
         self.n_jobs = n_jobs
-        if not isinstance(n_jobs, list):
+        if devices and n_jobs and not isinstance(n_jobs, list):
             self.n_jobs = [n_jobs for _ in devices]
         self.data_dir = data_dir or self._init_minos_dir()
         self.tf_logging_level = tf_logging_level

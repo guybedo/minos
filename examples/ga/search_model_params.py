@@ -6,14 +6,17 @@ Created on Feb 6, 2017
 from keras.datasets import reuters
 from keras.preprocessing.text import Tokenizer
 from keras.utils import np_utils
-
-from minos.experiment.experiment import Experiment, ExperimentParameters
+from minos.experiment.experiment import Experiment, ExperimentParameters,\
+    load_experiment_blueprints
 from minos.experiment.ga import run_ga_search_experiment
 from minos.experiment.training import Training, MetricDecreaseStoppingCondition,\
     EpochStoppingCondition
+from minos.model.build import ModelBuilder
 from minos.model.model import Objective, Optimizer, Metric, Layout
 from minos.model.parameter import int_param, string_param, float_param
-from minos.train.utils import CpuEnvironment, SimpleBatchIterator
+from minos.train.utils import CpuEnvironment, SimpleBatchIterator, cpu_device,\
+    Environment
+
 import numpy as np
 
 
@@ -72,7 +75,7 @@ def epoch_stopping_condition():
     return EpochStoppingCondition(epoch=10)
 
 
-def search_model(batch_size=32):
+def search_model(experiment_label, steps, batch_size=32):
     batch_iterator, test_batch_iterator, nb_classes = get_dataset(batch_size)
     layout = build_layout(max_words, nb_classes)
     training = Training(
@@ -83,7 +86,7 @@ def search_model(batch_size=32):
         batch_size)
     parameters = custom_experiment_parameters()
     experiment = Experiment(
-        'reuters_experiment',
+        experiment_label,
         layout,
         training,
         batch_iterator,
@@ -91,10 +94,28 @@ def search_model(batch_size=32):
         CpuEnvironment(n_jobs=2),
         parameters=parameters)
     run_ga_search_experiment(
-        experiment, 
-        population_size=100, 
-        generations=100, 
+        experiment,
+        population_size=100,
+        generations=steps,
         resume=False)
 
+
+def load_best_model(experiment_label, step):
+    blueprints = load_experiment_blueprints(
+        experiment_label,
+        step,
+        Environment())
+    return ModelBuilder().build(
+        blueprints[0], 
+        cpu_device(),
+        compile_model=False)
+
+
+def main():
+    experiment_label = 'reuters_experiment'
+    steps = 100
+    search_model(experiment_label, steps)
+    load_best_model(experiment_label, steps - 1)
+
 if __name__ == '__main__':
-    search_model()
+    main()

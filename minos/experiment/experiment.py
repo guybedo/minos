@@ -4,19 +4,22 @@ Created on Feb 6, 2017
 @author: julien
 '''
 from copy import deepcopy
+import json
 from os import path, makedirs
 from os.path import join
+import pickle
 
 from minos.model.parameter import Parameter, str_param_name, expand_param_path
 from minos.model.parameters import reference_parameters
+from minos.train.utils import Environment
 from minos.utils import setup_logging
 
 
 class Experiment(object):
 
-    def __init__(self, label, layout, training,
-                 batch_iterator, test_batch_iterator,
-                 environment, parameters=None, resume=False):
+    def __init__(self, label, layout=None, training=None,
+                 batch_iterator=None, test_batch_iterator=None,
+                 environment=None, parameters=None, resume=False):
         self.label = label
         self.layout = layout
         self.training = training
@@ -34,6 +37,16 @@ class Experiment(object):
         return path.join(
             self.get_experiment_data_dir(),
             'experiment.log')
+
+    def get_step_log_filename(self, step):
+        return path.join(
+            self.get_experiment_data_dir(),
+            'experiment.step.%d.log' % step)
+
+    def get_step_data_filename(self, step):
+        return path.join(
+            self.get_experiment_data_dir(),
+            'experiment.step.%d.data' % step)
 
     def evaluate(self, blueprints):
         from minos.train.trainer import MultiProcessModelTrainer
@@ -53,6 +66,36 @@ def setup_experiment(experiment, resume=False, log_level='INFO'):
         experiment.get_log_filename(),
         log_level,
         resume=resume)
+
+
+def experiment_step_logger(experiment, step, blueprints):
+    generation_log_filename = experiment.get_step_log_filename(step)
+    with open(generation_log_filename, 'w') as generation_file:
+        individuals = [blueprint.todict() for blueprint in blueprints]
+        json.dump(individuals, generation_file, indent=1, sort_keys=True)
+        
+    blueprints = [
+        Blueprint(**{k:v for k,v in vars(blueprint).items() if k!='fitness'})
+        for blueprint in blueprints]
+    generation_data_filename = experiment.get_step_data_filename(step)
+    with open(generation_data_filename, 'wb') as generation_file:
+        pickle.dump(blueprints, generation_file, -1)
+
+
+def run_experiment(experiment, runner,
+                   resume=False, log_level='INFO', **params):
+    setup_experiment(experiment, resume, log_level)
+    runner(
+        experiment,
+        step_logger=experiment_step_logger,
+        **params)
+
+
+def load_experiment_blueprints(experiment_label, step, environment=Environment()):
+    experiment = Experiment(experiment_label, environment=environment)
+    data_filename = experiment.get_step_data_filename(step)
+    with open(data_filename, 'rb') as data_file:
+        return pickle.load(data_file)
 
 
 class ExperimentParameters(object):

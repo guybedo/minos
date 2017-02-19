@@ -3,7 +3,7 @@ Created on Feb 14, 2017
 
 @author: julien
 '''
-from minos.experiment.experiment import Blueprint, Experiment
+from minos.experiment.experiment import Blueprint, Experiment, run_experiment
 from minos.model.design import create_random_blueprint, mutate_blueprint,\
     mix_blueprints
 from minos.search.ga.ga_search import search, GaExperiment, GaIndividual
@@ -53,8 +53,9 @@ class GaBlueprint(Blueprint, GaIndividual):
 
 def run_ga_search_experiment(experiment, population_size=50,
                              generations=100, resume=False):
-    search(
+    run_experiment(
         GaModelExperiment(experiment),
+        search,
+        resume=resume,
         population_size=population_size,
-        generations=generations,
-        resume=resume)
+        generations=generations)

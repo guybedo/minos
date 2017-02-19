@@ -12,7 +12,6 @@ from random import Random
 from statistics import mean
 
 from deap import creator, base, tools
-from minos.experiment.experiment import setup_experiment
 
 
 toolbox = base.Toolbox()
@@ -109,9 +108,8 @@ def fit_invalid_individuals(population):
         ind.fitness.values = fit
 
 
-def search(experiment, population_size=50,
-           generations=100, resume=False, log_level='INFO'):
-    setup_experiment(experiment, resume, log_level)
+def search(experiment, population_size=50, generations=100,
+           resume=False, log_level='INFO', step_logger=None):
     init_ga_env(experiment)
     population = None
     if resume:
@@ -127,29 +125,26 @@ def search(experiment, population_size=50,
         population=population,
         population_size=population_size,
         generations=generations,
-        generation_logger=build_generation_logger(experiment))
+        generation_logger=build_generation_logger(experiment, step_logger))
 
 
 def _get_population_filename(output_dir, experiment_label):
     return path.join(output_dir, '%s.population' % experiment_label)
 
 
-def _get_generation_filename(output_dir, experiment_label, generation):
-    return path.join(output_dir, '%s.generation.%d' % (experiment_label, generation))
-
-
-def build_generation_logger(experiment):
+def build_generation_logger(experiment, step_logger=None):
 
     population_filename = _get_population_filename(
         experiment.get_experiment_data_dir(),
         experiment.label)
 
     def _log(generation, population):
-        generation_filename = _get_generation_filename(
-            experiment.get_experiment_data_dir(),
-            experiment.label, generation)
         save_population(population, population_filename)
-        log_generation_info(generation, population, generation_filename)
+        log_generation_info(
+            generation,
+            population)
+        if step_logger:
+            step_logger(experiment, generation, population)
 
     return _log
 
@@ -170,26 +165,20 @@ def save_population(population, population_filename):
         pickle.dump(population, population_file, -1)
 
 
-def log_generation_info(generation, population, generation_filename):
-    generation_best = sorted(
+def log_generation_info(generation, population):
+    sorted_population = list(sorted(
         population,
-        key=lambda i: -i.fitness.values[0])[:3]
+        key=lambda i: -i.fitness.values[0]))
     population_scores = [
         individual.fitness.values[0]
         for individual in population]
-    generation_info = list()
-    generation_info.append({'generation': generation})
-    generation_info.append({'average': mean(population_scores)})
-    generation_info.append({'best_scores': [
-        best.fitness.values[0]
-        for best in generation_best]})
+    generation_info = [
+        {'generation': generation},
+        {'average': mean(population_scores)},
+        {'best_scores': [
+            best.fitness.values[0]
+            for best in sorted_population[:3]]}]
     logging.info(json.dumps(generation_info))
-
-    individuals = [
-        dict(score=individual.fitness.values[0], **individual.todict())
-        for individual in population]
-    with open(generation_filename, 'w') as generation_file:
-        json.dump(individuals, generation_file, indent=1, sort_keys=True)
 
 
 class GaExperiment(object):
