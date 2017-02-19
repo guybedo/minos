@@ -12,15 +12,13 @@ from keras.engine.training import Model
 from keras.layers.core import Dense
 from keras.regularizers import L1L2Regularizer
 
-from minos.train.utils import default_device
-
 
 class ModelBuilder(object):
 
     def __init__(self):
         pass
 
-    def build(self, blueprint, device=default_device()):
+    def build(self, blueprint, device):
         model = _build_model(blueprint, device)
         model.compile(
             optimizer=_build_optimizer(blueprint.training),
@@ -29,7 +27,7 @@ class ModelBuilder(object):
         return model
 
 
-def _build_model(blueprint, device=default_device()):
+def _build_model(blueprint, device):
     import tensorflow as tf
     with tf.device(device):
         inputs = Input(shape=(blueprint.layout.input_size,))

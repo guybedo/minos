@@ -22,8 +22,13 @@ def cpu_device():
 
 
 def get_available_gpus():
-    local_device_protos = device_lib.list_local_devices()
-    return [x.name for x in local_device_protos if x.device_type == 'GPU']
+    try:
+        local_device_protos = device_lib.list_local_devices()
+        return [x.name for x in local_device_protos if x.device_type == 'GPU']
+    except Exception as ex:
+        logging.error(
+            'Error while trying to list available GPUs: %s' % str(ex))
+        return list()
 
 
 def default_device():
