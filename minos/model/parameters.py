@@ -35,7 +35,7 @@ reference_parameters = {
                  'glorot_uniform',
                  'he_normal',
                  'he_uniform'],
-                default='lecun_uniform'),
+                default='glorot_uniform'),
             'activation': string_param(
                 ['softmax',
                  'softplus',
