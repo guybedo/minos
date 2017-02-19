@@ -56,8 +56,6 @@ def custom_experiment_parameters():
     experiment_parameters.layout_parameter('layers', int_param(1, 5))
     experiment_parameters.layer_parameter('Dense.output_dim', int_param(10, 500))
     experiment_parameters.layer_parameter('Dense.activation', string_param(['relu', 'tanh']))
-    experiment_parameters.layer_parameter('Dense.W_regularizer.l2', float_param(1e-7, 1e-6))
-    experiment_parameters.layer_parameter('Dense.b_regularizer.l2', float_param(1e-7, 1e-6))
     experiment_parameters.layer_parameter('Dropout.p', float_param(0.1, 0.9))
     return experiment_parameters
 
@@ -92,7 +90,11 @@ def search_model(batch_size=32):
         test_batch_iterator,
         CpuEnvironment(n_jobs=2),
         parameters=parameters)
-    run_ga_search_experiment(experiment)
+    run_ga_search_experiment(
+        experiment, 
+        population_size=100, 
+        generations=100, 
+        resume=False)
 
 if __name__ == '__main__':
     search_model()
