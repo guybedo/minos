@@ -128,12 +128,16 @@ def is_allowed_block_layer(layers, new_layer):
     if len(layers) > 0:
         previous_layer_type = layers[-1].layer_type\
             if isinstance(layers[-1], Layer) else layers[-1][0]
+        if new_layer == previous_layer_type:
+            return False
     if new_layer == 'BatchNormalization':
         return len(layers) > 0 and previous_layer_type == 'Dense'
-    return len(layers) == 0 or new_layer != previous_layer_type
+    if new_layer == 'Dropout':
+        return len(layers) > 0
+    return True
 
 
-block_layers = ['Dense']
+block_layers = ['Dense', 'Dropout', 'BatchNormalization']
 
 
 def get_allowed_new_block_layers(layers):

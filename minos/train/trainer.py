@@ -95,7 +95,7 @@ class ModelTrainer(object):
             self._setup_tf(device)
             nb_epoch, stopping_callbacks = self._get_stopping_parameters(blueprint)
             start = time()
-            model.fit_generator(
+            _history = model.fit_generator(
                 self.batch_iterator,
                 self.batch_iterator.samples_per_epoch,
                 nb_epoch,
