@@ -12,6 +12,7 @@ setup(name='Minos',
       setup_requires=[
           'numpy>=1.12'],
       install_requires=[
+          'numpy>=1.12',
           'keras',
           'deap==1.1.0'],
       dependency_links=[
