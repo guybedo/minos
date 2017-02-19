@@ -9,8 +9,9 @@ setup(name='Minos',
       author_email='julien.roch@akalea.com',
       url='https://github.com/guybedo/minos',
       license='MIT',
+      setup_requires=[
+          'numpy>=1.12'],
       install_requires=[
-          'numpy>=1.12',
           'keras',
           'deap==1.1.0'],
       dependency_links=[
