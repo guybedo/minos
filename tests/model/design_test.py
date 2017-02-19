@@ -9,7 +9,7 @@ from keras.layers.core import Dense, Dropout
 
 from minos.experiment.experiment import Experiment, ExperimentParameters
 from minos.experiment.training import Training
-from minos.model.design import create_random_blueprint, mutate_blueprint
+from minos.model.design import create_random_blueprint
 from minos.model.model import Optimizer, Layout
 from minos.model.parameter import is_valid_param_value, str_param_name
 
@@ -64,7 +64,10 @@ class DesignTest(unittest.TestCase):
                         blocks),
                     'Invalid value')
                 for block in row.get_blocks():
-                    layers = len(block.get_layers())
+                    layers = len([
+                        l
+                        for l in block.get_layers()
+                        if l.layer_type != 'Merge'])
                     self.assertTrue(
                         is_valid_param_value(
                             experiment.parameters.get_layout_parameter('layers'),

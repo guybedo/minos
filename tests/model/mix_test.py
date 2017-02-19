@@ -8,8 +8,7 @@ import unittest
 
 from minos.experiment.experiment import Experiment, ExperimentParameters
 from minos.experiment.training import Training
-from minos.model.design import create_random_blueprint, mutate_blueprint,\
-    mix_blueprints
+from minos.model.design import create_random_blueprint,mix_blueprints
 from minos.model.model import Layout
 
 
@@ -34,7 +33,7 @@ class MixTest(unittest.TestCase):
             test_batch_iterator=None,
             environment=None,
             parameters=ExperimentParameters(use_default_values=False))
-        for _ in range(50):
+        for _ in range(10):
             blueprint1 = create_random_blueprint(experiment)
             blueprint2 = create_random_blueprint(experiment)
             mutant = mix_blueprints(

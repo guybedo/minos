@@ -33,7 +33,7 @@ class MutationTest(unittest.TestCase):
             test_batch_iterator=None,
             environment=None,
             parameters=ExperimentParameters(use_default_values=False))
-        for _ in range(50):
+        for _ in range(10):
             blueprint = create_random_blueprint(experiment)
             mutant = mutate_blueprint(
                 blueprint,

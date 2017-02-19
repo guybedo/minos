@@ -10,6 +10,7 @@ from minos.experiment.training import Training, EpochStoppingCondition
 from minos.model.build import ModelBuilder
 from minos.model.design import create_random_blueprint
 from minos.model.model import Layout, Objective, Metric
+from build.lib.minos.train.utils import cpu_device
 
 
 class BuildTest(unittest.TestCase):
@@ -35,9 +36,9 @@ class BuildTest(unittest.TestCase):
             test_batch_iterator=None,
             environment=None,
             parameters=experiment_parameters)
-        for _ in range(50):
+        for _ in range(10):
             blueprint = create_random_blueprint(experiment)
-            model = ModelBuilder().build(blueprint)
+            model = ModelBuilder().build(blueprint, cpu_device())
             self.assertIsNotNone(model, 'Should have built a model')
 
 
