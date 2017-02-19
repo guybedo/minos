@@ -72,6 +72,7 @@ def evolve(population=None, population_size=50,
            mutpb_prob=0.2, aliens_ratio=0.1, generation_logger=None):
     population = population or toolbox.population(n=population_size)
     for generation in range(generations):
+        logging.info('Evolving generation %d' % generation)
         fit_invalid_individuals(population)
         population = list(sorted(
             population,
