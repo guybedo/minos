@@ -55,8 +55,14 @@ class TrainTest(unittest.TestCase):
                 validation_data=test_batch_iterator,
                 nb_val_samples=test_batch_iterator.sample_count)
             self.assertIsNotNone(
-                result, 
+                result,
                 'should have fit the model')
+            score = model.evaluate_generator(
+                test_batch_iterator,
+                val_samples=test_batch_iterator.sample_count)
+            self.assertIsNotNone(
+                score,
+                'should have evaluated the model')
 
 
 if __name__ == "__main__":
