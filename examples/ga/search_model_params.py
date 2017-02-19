@@ -52,7 +52,7 @@ def build_layout(input_size, output_size):
 
 def custom_experiment_parameters():
     experiment_parameters = ExperimentParameters()
-    experiment_parameters.layout_parameter('blocks', 1)
+    experiment_parameters.layout_parameter('blocks', int_param(1, 5))
     experiment_parameters.layout_parameter('layers', int_param(1, 5))
     experiment_parameters.layer_parameter('Dense.output_dim', int_param(10, 500))
     experiment_parameters.layer_parameter('Dense.activation', string_param(['relu', 'tanh']))
