@@ -142,12 +142,12 @@ def model_training_worker(batch_iterator, test_batch_iterator,
     while work:
         try:
             idx, total, blueprint = work
-            logging.info('Processing blueprint %d/%d' % (idx, total))
+            logging.debug('Processing blueprint %d/%d' % (idx, total))
             result = model_trainer.train(
                 blueprint,
                 device_id,
                 device)
-            logging.info('Blueprint %d score %f' % (idx, result[0]))
+            logging.debug('Blueprint %d score %f' % (idx, result[0]))
             result_queue.put([idx] + list(result))
             work = work_queue.get()
         except Exception as ex:
