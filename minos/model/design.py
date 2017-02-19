@@ -26,7 +26,7 @@ def create_random_blueprint(experiment):
 
 
 def _random_training(experiment):
-    training = Training(**experiment.training.todict())
+    training = deepcopy(experiment.training)
     training.optimizer = _random_optimizer(
         training.optimizer,
         experiment.parameters)

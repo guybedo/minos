@@ -35,12 +35,12 @@ def log_generation_info(generation, population):
         individual.fitness.values[0]
         for individual in population]
     generation_info = list()
-    generation_info.append({'generation': generation_info})
+    generation_info.append({'generation': generation})
     generation_info.append({'average': mean(population_scores)})
     generation_info.append({'best_scores': [
         best.fitness.values[0]
         for best in generation_best]})
     generation_info.append({'best_individuals': [
-        dict(score=best.fitness.values[0], **vars(best))
+        dict(score=best.fitness.values[0], **best.todict())
         for best in generation_best]})
     logging.info(json.dumps(generation_info))

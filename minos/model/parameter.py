@@ -201,4 +201,8 @@ def random_param_value(param):
 
 
 def random_list_element(elements):
+    if len(elements) == 0:
+        return None
+    if len(elements) == 1:
+        return elements[0]
     return elements[rand.randint(0, len(elements) - 1)]

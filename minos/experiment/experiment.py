@@ -112,3 +112,8 @@ class Blueprint(object):
     def __init__(self, layout, training):
         self.layout = layout
         self.training = training
+
+    def todict(self):
+        return {
+            'layout': self.layout.todict(),
+            'training': self.training.todict()}

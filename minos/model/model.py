@@ -9,8 +9,8 @@ class Layout(object):
 
     def __init__(self, input_size, output_size,
                  output_activation, block=None, block_input=None, rows=None):
-        self.input_size = input_size
-        self.output_size = output_size
+        self.input_size = int(input_size)
+        self.output_size = int(output_size)
         self.output_activation = output_activation
         self.block = block
         self.block_input = block_input
@@ -31,6 +31,12 @@ class Layout(object):
             for row in self.rows
             for layer in row.get_layers()]
 
+    def todict(self):
+        dict_repr = dict(vars(self))
+        del dict_repr['block']
+        dict_repr['rows'] = [row.todict() for row in self.rows]
+        return dict_repr
+
 
 class Row(object):
 
@@ -46,6 +52,12 @@ class Row(object):
             for block in self.blocks
             for layer in block.get_layers()]
 
+    def todict(self):
+        return {
+            'blocks': [
+                block.todict()
+                for block in self.blocks]}
+
 
 class Block(object):
 
@@ -55,6 +67,12 @@ class Block(object):
     def get_layers(self):
         return self.layers
 
+    def todict(self):
+        return {
+            'layers': [
+                layer.todict()
+                for layer in self.layers]}
+
 
 class Layer(object):
 
@@ -62,11 +80,17 @@ class Layer(object):
         self.layer_type = layer_type
         self.parameters = parameters or dict()
 
+    def todict(self):
+        return dict(vars(self))
+
 
 class Metric(object):
 
     def __init__(self, metric):
         self.metric = metric
+
+    def todict(self):
+        return dict(vars(self))
 
 
 class Objective(object):
@@ -74,9 +98,15 @@ class Objective(object):
     def __init__(self, objective):
         self.objective = objective
 
+    def todict(self):
+        return dict(vars(self))
+
 
 class Optimizer(object):
 
     def __init__(self, optimizer=None, parameters=None):
         self.optimizer = optimizer
         self.parameters = parameters or dict()
+
+    def todict(self):
+        return dict(vars(self))

@@ -15,13 +15,21 @@ class Training(object):
         self.batch_size = batch_size
 
     def todict(self):
-        return dict(self.__dict__)
+        return {
+            'objective': self.objective.todict(),
+            'optimizer': self.optimizer.todict(),
+            'metric': self.metric.todict(),
+            'stopping': self.stopping.todict(),
+            'batch_size': self.batch_size}
 
 
 class EpochStoppingCondition(object):
 
     def __init__(self, epoch):
         self.epoch = epoch
+
+    def todict(self):
+        return dict(vars(self))
 
 
 class MetricDecreaseStoppingCondition(object):
@@ -50,3 +58,6 @@ class MetricDecreaseStoppingCondition(object):
             self.model.stop_training = True
             return
         super().on_epoch_end(epoch, logs)
+
+    def todict(self):
+        return dict(vars(self))
