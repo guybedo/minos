@@ -7,7 +7,6 @@ from copy import deepcopy
 
 from minos.model.parameter import Parameter, str_param_name, expand_param_path
 from minos.model.parameters import reference_parameters
-from minos.train.trainer import MultiProcessModelTrainer
 
 
 class Experiment(object):
@@ -24,18 +23,14 @@ class Experiment(object):
         self.parameters = parameters or ExperimentParameters()
 
     def evaluate(self, blueprints):
-        self._init_dataset()
+        from minos.train.trainer import MultiProcessModelTrainer
         model_trainer = MultiProcessModelTrainer(
-            self.training,
             self.batch_iterator,
             self.test_batch_iterator,
             self.environment)
-        blueprints = [
-            blueprint.todict(remove_property='fitness')
-            for blueprint in blueprints]
         return [
             [result[1]]
-            for result in model_trainer.build_and_train(blueprints)]
+            for result in model_trainer.build_and_train_models(blueprints)]
 
 
 class ExperimentParameters(object):
@@ -78,8 +73,6 @@ class ExperimentParameters(object):
                 path[1:],
                 value)
         else:
-            if not isinstance(value, Parameter):
-                value = Parameter(path[0], value)
             node[path[0]] = value
         return node
 

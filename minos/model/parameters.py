@@ -22,7 +22,7 @@ reference_parameters = {
     },
     'layers': {
         'Dense': {
-            'output_dim': int_param(1, 1000),
+            'output_dim': int_param(1, 1000, default=100),
             'init': string_param(
                 ['uniform',
                  'lecun_uniform',
@@ -35,7 +35,7 @@ reference_parameters = {
                  'glorot_uniform',
                  'he_normal',
                  'he_uniform'],
-                default='glorot_normal'),
+                default='lecun_uniform'),
             'activation': string_param(
                 ['softmax',
                  'softplus',
@@ -111,41 +111,41 @@ reference_parameters = {
     'optimizers': {
         'SGD': {
             'lr': float_param(default=1e-3),
-            'momentum': float_param(),
-            'decay': float_param(),
-            'nesterov': boolean_param()},
+            'momentum': float_param(default=0),
+            'decay': float_param(default=0),
+            'nesterov': boolean_param(default=False)},
         'RMSprop': {
             'lr': float_param(default=1e-3),
             'rho': float_param(default=0.9),
             'epsilon': float_param(default=1e-08),
-            'decay': float_param()},
+            'decay': float_param(default=0)},
         'Adagrad': {
             'lr': float_param(default=1e-3),
             'epsilon': float_param(default=1e-08),
-            'decay': float_param()},
+            'decay': float_param(default=0)},
         'Adadelta': {
             'lr': float_param(default=1e-3),
             'rho': float_param(default=0.9),
             'epsilon': float_param(default=1e-08),
-            'decay': float_param()},
+            'decay': float_param(default=0)},
         'Adam': {
             'lr': float_param(default=1e-3),
             'beta_1': float_param(default=0.9),
             'beta_2': float_param(default=0.999),
             'epsilon': float_param(default=1e-08),
-            'decay': float_param()},
+            'decay': float_param(default=0)},
         'Adamax': {
             'lr': float_param(default=1e-3),
             'beta_1': float_param(default=0.9),
             'beta_2': float_param(default=0.999),
             'epsilon': float_param(default=1e-08),
-            'decay': float_param()},
+            'decay': float_param(default=0)},
         'Nadam': {
             'lr': float_param(default=1e-3),
             'beta_1': float_param(default=0.9),
             'beta_2': float_param(default=0.999),
             'epsilon': float_param(default=1e-08),
-            'schedule_decay': float_param()}},
+            'schedule_decay': float_param(default=4e-3)}},
     'metric': string_param([
         'binary_accuracy',
         'categorical_accuracy',

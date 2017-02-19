@@ -13,7 +13,6 @@ from keras.layers.core import Dense
 from keras.regularizers import L1L2Regularizer
 
 from minos.train.utils import default_device
-import tensorflow as tf
 
 
 class ModelBuilder(object):
@@ -31,6 +30,7 @@ class ModelBuilder(object):
 
 
 def _build_model(blueprint, device=default_device()):
+    import tensorflow as tf
     with tf.device(device):
         inputs = Input(shape=(blueprint.layout.input_size,))
         row_input = inputs
@@ -82,7 +82,12 @@ def _build_layer_model(inputs, layer):
 
 def _build_layer_parameters(layer):
     parameters = deepcopy(layer.parameters)
-    regularizers = ['activity_regularizer', 'b_regularizer', 'W_regularizer', 'gamma_regularizer', 'beta_regularizer']
+    regularizers = [
+        'activity_regularizer',
+        'b_regularizer',
+        'W_regularizer',
+        'gamma_regularizer',
+        'beta_regularizer']
     for regularizer in regularizers:
         if regularizer in parameters:
             parameters[regularizer] = _get_regularizer(parameters[regularizer])
@@ -90,7 +95,9 @@ def _build_layer_parameters(layer):
 
 
 def _get_regularizer(regularizer_parameter):
-    if regularizer_parameter is None or len(regularizer_parameter) == 0:
+    if regularizer_parameter is None\
+            or len(regularizer_parameter) == 0\
+            or all(value is None for _, value in regularizer_parameter.items()):
         return None
     l1 = regularizer_parameter.get('l1', 0.)
     l2 = regularizer_parameter.get('l2', 0.)

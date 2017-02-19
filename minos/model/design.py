@@ -39,6 +39,8 @@ def _random_optimizer(optimizer, experiment_parameters):
     if not optimizer_id:
         optimizers = list(ref_parameters.keys())
         optimizer_id = optimizers[rand.randint(0, len(optimizers) - 1)]
+    if not optimizer_id in ref_parameters:
+        raise Exception('Unknown optimizer id: "%s"' % optimizer_id)
     param_space = deepcopy(ref_parameters[optimizer_id])
     if optimizer:
         param_space.update(optimizer.parameters)
@@ -131,7 +133,7 @@ def is_allowed_block_layer(layers, new_layer):
     return len(layers) == 0 or new_layer != previous_layer_type
 
 
-block_layers = ['Dense', 'Dropout', 'BatchNormalization']
+block_layers = ['Dense']
 
 
 def get_allowed_new_block_layers(layers):
@@ -157,8 +159,8 @@ def mutate_blueprint(blueprint, parameters,
         parameters,
         p_mutate_param=p_mutate_param)
     _mutate_optimizer(
-        blueprint.training.optimizer, 
-        parameters, 
+        blueprint.training.optimizer,
+        parameters,
         p_mutate_param=p_mutate_param)
     return blueprint
 
@@ -245,12 +247,12 @@ def _mutate_layer(layer, parameters, p_mutate_param=0.1):
         if rand.random() < p_mutate_param:
             layer.parameters[name] = mutate_param(param_space[name], value)
 
+
 def _mutate_optimizer(optimizer, parameters, p_mutate_param=0.1):
     param_space = deepcopy(parameters.get_optimizer_parameters(optimizer.optimizer))
     for name, value in optimizer.parameters.items():
         if rand.random() < p_mutate_param:
             optimizer.parameters[name] = mutate_param(param_space[name], value)
-            
 
 
 def mix_blueprints(blueprint1, blueprint2, parameters, p_mutate_param=0.05):

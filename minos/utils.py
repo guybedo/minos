@@ -4,9 +4,15 @@ Created on Feb 12, 2017
 @author: julien
 '''
 from logging.config import dictConfigClass
+import sys
+
+
+def disable_sysout():
+    sys.stdout.write = lambda s: s
 
 
 def setup_logging(filename, level='INFO'):
+    print('Logging to %s, level=%s' % (filename, level))
     logging_configuration = {
         'version': 1,
         'formatters': {
