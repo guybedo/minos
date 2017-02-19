@@ -8,12 +8,14 @@ setup(name='Minos',
       author='Julien Roch',
       author_email='julien.roch@akalea.com',
       url='https://github.com/guybedo/minos',
-      download_url='https://github.com/fchollet/keras/tarball/1.2.1',
       license='MIT',
       install_requires=[
-          'numpy',
+          'numpy>=1.12',
           'keras',
-          'deap>=1.0.2'],
+          'deap==1.1.0'],
+      dependency_links=[
+          "git+ssh://git@github.com/DEAP/deap.git@a1412d71b50606a7e4e87c3ba538b25603b84266#egg=deap-1.1.0"
+      ],
       extras_require={
           'tests': ['pytest',
                     'pytest-cov',
