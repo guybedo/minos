@@ -192,7 +192,10 @@ def random_param_value(param):
     if param.values:
         value = random_list_element(param.values)
     elif param.lo is not None and param.hi is not None:
-        value = param.lo + (rand.random() * (param.hi - param.lo))
+        if param.param_type == int:
+            value = rand.randint(param.lo, param.hi)
+        else:
+            value = param.lo + (rand.random() * (param.hi - param.lo))
     elif param.lo is not None:
         value = param.lo * (1 + rand.random())
     elif param.hi is not None:
