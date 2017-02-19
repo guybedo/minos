@@ -4,14 +4,15 @@ Created on Dec 5, 2016
 @author: julien
 '''
 from genericpath import isfile
+import json
+import logging
 from os import path
+import pickle
 from random import Random
+from statistics import mean
 
 from deap import creator, base, tools
-
-from minos.search.ga.population import save_population,\
-    load_population, log_generation_info
-from minos.utils import setup_logging
+from minos.experiment.experiment import setup_experiment
 
 
 toolbox = base.Toolbox()
@@ -69,15 +70,15 @@ def init_ga_env(experiment):
 
 def evolve(population=None, population_size=50,
            generations=50, offspring_count=2, cx_prob=0.5,
-           mutpb_prob=0.2, aliens_ratio=0.1, population_filename=None):
+           mutpb_prob=0.2, aliens_ratio=0.1, generation_logger=None):
     population = population or toolbox.population(n=population_size)
     for generation in range(generations):
         fit_invalid_individuals(population)
         population = list(sorted(
             population,
             key=lambda i: -i.fitness.values[0]))[:population_size]
-        save_population(population, population_filename)
-        log_generation_info(generation, population)
+        if generation_logger:
+            generation_logger(generation, population)
         mates = tools.selBest(population, population_size)
         for ind1, ind2 in zip(mates[::2], mates[1::2]):
             if rand.random() < cx_prob:
@@ -108,28 +109,17 @@ def fit_invalid_individuals(population):
         ind.fitness.values = fit
 
 
-def _get_population_filename(output_dir, experiment_label):
-    return path.join(output_dir, '%s.population' % experiment_label)
-
-
-def _get_log_filename(output_dir, experiment_label):
-    return path.join(output_dir, '%s.log' % experiment_label)
-
-
 def search(experiment, population_size=50,
            generations=100, resume=False, log_level='INFO'):
-    setup_logging(
-        _get_log_filename(
-            experiment.environment.data_dir,
-            experiment.label),
-        log_level,
-        resume=resume)
+    setup_experiment(experiment, resume, log_level)
     init_ga_env(experiment)
     population = None
-    population_filename = _get_population_filename(
-        experiment.environment.data_dir,
-        experiment.label)
-    if resume and isfile(population_filename):
+    if resume:
+        population_filename = _get_population_filename(
+            experiment.get_experiment_data_dir(),
+            experiment.label)
+        if not isfile(population_filename):
+            raise Exception('Previous population file not found, resume impossible')
         population = load_population(population_filename)
         if len(population) < population_size:
             population += toolbox.population(n=population_size - len(population))
@@ -137,7 +127,69 @@ def search(experiment, population_size=50,
         population=population,
         population_size=population_size,
         generations=generations,
-        population_filename=population_filename)
+        generation_logger=build_generation_logger(experiment))
+
+
+def _get_population_filename(output_dir, experiment_label):
+    return path.join(output_dir, '%s.population' % experiment_label)
+
+
+def _get_generation_filename(output_dir, experiment_label, generation):
+    return path.join(output_dir, '%s.generation.%d' % (experiment_label, generation))
+
+
+def build_generation_logger(experiment):
+
+    population_filename = _get_population_filename(
+        experiment.get_experiment_data_dir(),
+        experiment.label)
+
+    def _log(generation, population):
+        generation_filename = _get_generation_filename(
+            experiment.get_experiment_data_dir(),
+            experiment.label, generation)
+        save_population(population, population_filename)
+        log_generation_info(generation, population, generation_filename)
+
+    return _log
+
+
+def load_population(population_filename):
+    logging.info('Loading population %s' % population_filename)
+    if not isfile(population_filename):
+        logging.info('Population file %s not found!' % population_filename)
+        return None
+    with open(population_filename, 'rb') as population_file:
+        return pickle.load(population_file)
+
+
+def save_population(population, population_filename):
+    if not population_filename:
+        return
+    with open(population_filename, 'wb') as population_file:
+        pickle.dump(population, population_file, -1)
+
+
+def log_generation_info(generation, population, generation_filename):
+    generation_best = sorted(
+        population,
+        key=lambda i: -i.fitness.values[0])[:3]
+    population_scores = [
+        individual.fitness.values[0]
+        for individual in population]
+    generation_info = list()
+    generation_info.append({'generation': generation})
+    generation_info.append({'average': mean(population_scores)})
+    generation_info.append({'best_scores': [
+        best.fitness.values[0]
+        for best in generation_best]})
+    logging.info(json.dumps(generation_info))
+
+    individuals = [
+        dict(score=individual.fitness.values[0], **individual.todict())
+        for individual in population]
+    with open(generation_filename, 'w') as generation_file:
+        json.dump(individuals, generation_file, indent=1, sort_keys=True)
 
 
 class GaExperiment(object):

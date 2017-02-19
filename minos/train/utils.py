@@ -5,6 +5,7 @@ Created on Feb 12, 2017
 '''
 import logging
 from os import path, makedirs
+from os.path import isdir, join
 from posix import access, W_OK
 from random import Random
 import traceback
@@ -64,9 +65,10 @@ class Environment(object):
         self.tf_logging_level = tf_logging_level
 
     def _init_minos_dir(self):
-        minos_dir = path.expanduser(path.join('~', 'minos'))
-        if not access(minos_dir, W_OK):
-            minos_dir = path.join('/tmp', 'minos')
+        base_dir = path.expanduser('~')
+        if not access(base_dir, W_OK):
+            base_dir = path.join('/tmp')
+        minos_dir = join(base_dir, 'minos')
         if not path.exists(minos_dir):
             makedirs(minos_dir)
         return minos_dir

@@ -4,9 +4,12 @@ Created on Feb 6, 2017
 @author: julien
 '''
 from copy import deepcopy
+from os import path, makedirs
+from os.path import join
 
 from minos.model.parameter import Parameter, str_param_name, expand_param_path
 from minos.model.parameters import reference_parameters
+from minos.utils import setup_logging
 
 
 class Experiment(object):
@@ -22,6 +25,16 @@ class Experiment(object):
         self.environment = environment
         self.parameters = parameters or ExperimentParameters()
 
+    def get_experiment_data_dir(self):
+        return join(
+            self.environment.data_dir,
+            self.label)
+
+    def get_log_filename(self):
+        return path.join(
+            self.get_experiment_data_dir(),
+            'experiment.log')
+
     def evaluate(self, blueprints):
         from minos.train.trainer import MultiProcessModelTrainer
         model_trainer = MultiProcessModelTrainer(
@@ -31,6 +44,15 @@ class Experiment(object):
         return [
             [result[1]]
             for result in model_trainer.build_and_train_models(blueprints)]
+
+
+def setup_experiment(experiment, resume=False, log_level='INFO'):
+    if not path.exists(experiment.get_experiment_data_dir()):
+        makedirs(experiment.get_experiment_data_dir())
+    setup_logging(
+        experiment.get_log_filename(),
+        log_level,
+        resume=resume)
 
 
 class ExperimentParameters(object):

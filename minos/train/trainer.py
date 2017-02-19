@@ -87,7 +87,6 @@ class ModelTrainer(object):
                 blueprint,
                 get_logical_device(device))
         except Exception as ex:
-            logging.warning('invalid model')
             return 0, blueprint, 0, device_id
 
         try:

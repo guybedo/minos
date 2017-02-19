@@ -3,6 +3,7 @@ Created on Feb 8, 2017
 
 @author: julien
 '''
+from keras.callbacks import EarlyStopping
 
 
 class Training(object):
@@ -32,13 +33,15 @@ class EpochStoppingCondition(object):
         return dict(vars(self))
 
 
-class MetricDecreaseStoppingCondition(object):
+class MetricDecreaseStoppingCondition(EarlyStopping):
 
     def __init__(self, noprogress_count=3, min_epoch=0, max_epoch=0):
-        self.patience = noprogress_count
+        super().__init__(
+            monitor='val_accuracy',
+            patience=noprogress_count)
+        self.noprogress_count = noprogress_count
         self.min_epoch = min_epoch
         self.max_epoch = max_epoch
-        self.monitor = 'val_accuracy'
         self.epoch = 0
 
     def is_at_least_min_epoch(self):
