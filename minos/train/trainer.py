@@ -5,7 +5,6 @@ Created on Feb 12, 2017
 '''
 import logging
 from multiprocessing import Queue, Process
-import sys
 from threading import Thread
 from time import time
 import traceback

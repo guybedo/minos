@@ -4,7 +4,6 @@ Created on Feb 6, 2017
 @author: julien
 '''
 from keras.datasets import reuters
-from keras.layers.core import Dense, Activation, Dropout
 from keras.preprocessing.text import Tokenizer
 from keras.utils import np_utils
 
