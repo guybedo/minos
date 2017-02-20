@@ -10,7 +10,7 @@ from time import time
 import traceback
 
 from minos.experiment.training import EpochStoppingCondition,\
-    MetricDecreaseStoppingCondition
+    AccuracyDecreaseStoppingCondition
 from minos.train.utils import is_gpu_device, get_device_idx, get_logical_device
 from minos.utils import disable_sysout
 
@@ -114,7 +114,7 @@ class ModelTrainer(object):
         if isinstance(blueprint.training.stopping, EpochStoppingCondition):
             nb_epoch = blueprint.training.stopping.epoch
             stopping_callbacks = []
-        if isinstance(blueprint.training.stopping, MetricDecreaseStoppingCondition):
+        if isinstance(blueprint.training.stopping, AccuracyDecreaseStoppingCondition):
             nb_epoch = blueprint.training.stopping.max_epoch
             stopping_callbacks = [blueprint.training.stopping]
         return nb_epoch, stopping_callbacks

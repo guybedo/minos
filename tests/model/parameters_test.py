@@ -5,7 +5,8 @@ Created on Feb 7, 2017
 '''
 import unittest
 
-from minos.experiment.experiment import ExperimentParameters
+from minos.experiment.experiment import ExperimentParameters, Experiment,\
+    check_experiment_parameters, InvalidParametersException
 from minos.model.parameter import random_param_value, int_param, float_param,\
     string_param
 from minos.model.parameters import reference_parameters
@@ -91,6 +92,17 @@ class ParametersTest(unittest.TestCase):
             self.assertTrue(
                 len(val) >= 0 and len(val) <= len(param),
                 'Should respect non optional setting')
+
+    def test_search_parameters(self):
+        experiment = Experiment(
+            label='test',
+            parameters=ExperimentParameters(use_default_values=False))
+        valid_parameters = True
+        try:
+            check_experiment_parameters(experiment)
+        except InvalidParametersException:
+            valid_parameters = False
+        self.assertFalse(valid_parameters, 'Should have raised an exception')
 
 
 if __name__ == "__main__":

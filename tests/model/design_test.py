@@ -6,8 +6,8 @@ Created on Feb 15, 2017
 import unittest
 
 from keras.layers.core import Dense, Dropout
-
-from minos.experiment.experiment import Experiment, ExperimentParameters
+from minos.experiment.experiment import Experiment, ExperimentParameters,\
+    check_experiment_parameters
 from minos.experiment.training import Training
 from minos.model.design import create_random_blueprint
 from minos.model.model import Optimizer, Layout
@@ -35,6 +35,8 @@ class DesignTest(unittest.TestCase):
             test_batch_iterator=None,
             environment=None,
             parameters=ExperimentParameters(use_default_values=False))
+        experiment.parameters.all_search_parameters(True)
+        check_experiment_parameters(experiment)
         for _ in range(10):
             blueprint = create_random_blueprint(experiment)
             self.assertIsNotNone(blueprint, 'Should have created a blueprint')
@@ -128,6 +130,7 @@ class DesignTest(unittest.TestCase):
             test_batch_iterator=None,
             environment=None,
             parameters=ExperimentParameters(use_default_values=False))
+        experiment.parameters.all_search_parameters(True)
         for _ in range(10):
             blueprint = create_random_blueprint(experiment)
             self.assertIsNotNone(blueprint, 'Should have created a blueprint')
@@ -146,33 +149,23 @@ class DesignTest(unittest.TestCase):
                         experiment.parameters.get_layout_parameter('blocks'),
                         blocks),
                     'Invalid value')
-                expected_layer_count = len(layout.block)
-                input_layer_count = 0
-                if i > 0 and len(blueprint.layout.get_rows()[i - 1].get_blocks()) > 1:
-                    input_layer_count = 1
-                    expected_layer_count += input_layer_count
                 for block in row.get_blocks():
                     self.assertEqual(
-                        expected_layer_count,
+                        len(layout.block),
                         len(block.layers),
                         'Should have used template')
-                    for i in range(input_layer_count):
-                        self.assertEqual(
-                            'Merge',
-                            block.layers[i].layer_type,
-                            'Should have used the predefined layer type')
-                    for i in range(input_layer_count, len(layout.block)):
+                    for i in range(len(layout.block)):
                         layer = layout.block[i]
                         layer_type = str_param_name(layer[0] if isinstance(layer, tuple) else layer)
                         params = layer[1] if isinstance(layer, tuple) else dict()
                         self.assertEqual(
                             layer_type,
-                            block.layers[i + input_layer_count].layer_type,
+                            block.layers[i].layer_type,
                             'Should have used the predefined layer type')
                         for name, value in params.items():
                             self.assertEqual(
                                 value,
-                                block.layers[i + input_layer_count].parameters[name],
+                                block.layers[i].parameters[name],
                                 'Should have used the predefined parameter value')
 
 

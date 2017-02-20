@@ -5,10 +5,10 @@ Created on Feb 15, 2017
 '''
 import unittest
 
-
-from minos.experiment.experiment import Experiment, ExperimentParameters
+from minos.experiment.experiment import Experiment, ExperimentParameters,\
+    check_experiment_parameters
 from minos.experiment.training import Training
-from minos.model.design import create_random_blueprint,mix_blueprints
+from minos.model.design import create_random_blueprint, mix_blueprints
 from minos.model.model import Layout
 
 
@@ -33,6 +33,8 @@ class MixTest(unittest.TestCase):
             test_batch_iterator=None,
             environment=None,
             parameters=ExperimentParameters(use_default_values=False))
+        experiment.parameters.all_search_parameters(True)
+        check_experiment_parameters(experiment)
         for _ in range(10):
             blueprint1 = create_random_blueprint(experiment)
             blueprint2 = create_random_blueprint(experiment)

@@ -39,6 +39,7 @@ class GaSearchTest(unittest.TestCase):
             experiment_parameters.layout_parameter('blocks', 1)
             experiment_parameters.layout_parameter('layers', 1)
             experiment_parameters.layer_parameter('Dense.output_dim', int_param(10, 500))
+            experiment_parameters.all_search_parameters(True)
 
             experiment_label = 'test__reuters_experiment'
             experiment = Experiment(

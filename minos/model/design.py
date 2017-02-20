@@ -27,9 +27,10 @@ def create_random_blueprint(experiment):
 
 def _random_training(experiment):
     training = deepcopy(experiment.training)
-    training.optimizer = _random_optimizer(
-        training.optimizer,
-        experiment.parameters)
+    if experiment.parameters.is_optimizer_search():
+        training.optimizer = _random_optimizer(
+            training.optimizer,
+            experiment.parameters)
     return training
 
 
@@ -56,18 +57,27 @@ def _random_layout(layout, experiment_parameters):
         layout.output_size,
         layout.output_activation,
         layout.block)
-    rows = random_param_value(experiment_parameters.get_layout_parameter('rows'))
-    for row_idx in range(rows):
-        layout.rows.append(
-            _random_layout_row(
-                layout,
-                row_idx,
-                experiment_parameters))
-    _apply_parameters_to_layout(layout, experiment_parameters)
+    if experiment_parameters.is_layout_search():
+        rows = random_param_value(experiment_parameters.get_layout_parameter('rows'))
+        for row_idx in range(rows):
+            layout.rows.append(
+                _random_layout_row(
+                    layout,
+                    row_idx,
+                    experiment_parameters))
+    else:
+        layout.rows = [
+            Row(blocks=[
+                _instantiate_layout_block(
+                    layout,
+                    row_idx,
+                    experiment_parameters)])]
+    if experiment_parameters.is_parameters_search():
+        _set_layout_random_parameters(layout, experiment_parameters)
     return layout
 
 
-def _apply_parameters_to_layout(layout, experiment_parameters):
+def _set_layout_random_parameters(layout, experiment_parameters):
     for layer in layout.get_layers():
         _set_layer_random_parameters(layer, experiment_parameters)
 
@@ -90,17 +100,26 @@ def _random_layout_row(layout, row_idx, experiment_parameters):
         for _ in range(blocks)])
 
 
+def _instantiate_layout_block(layout, row_idx, experiment_parameters):
+    block = Block()
+    _setup_block_input(layout, row_idx, block, experiment_parameters)
+    block.layers = _create_template_layers(layout.block)
+    return block
+
+
 def _random_layout_block(layout, row_idx, experiment_parameters):
-    template = layout.block
-    if not template:
-        layers = random_param_value(experiment_parameters.get_layout_parameter('layers'))
-        template = []
-        for _ in range(layers):
-            block_layers = get_allowed_new_block_layers(template)
-            if len(block_layers) == 0:
-                break
-            index = rand.randint(0, len(block_layers) - 1)
-            template.append((block_layers[index], dict()))
+    if layout.block:
+        return _instantiate_layout_block(layout, row_idx, experiment_parameters)
+    layers = random_param_value(experiment_parameters.get_layout_parameter('layers'))
+    template = []
+    for _ in range(layers):
+        allowed_layers = get_allowed_new_block_layers(template)
+        if len(block_layers) == 0:
+            break
+        new_layer = random_list_element(allowed_layers)
+        layer_parameters = random_param_value(
+            experiment_parameters.get_layer_parameters(new_layer))
+        template.append((new_layer, layer_parameters))
     block = Block()
     _setup_block_input(layout, row_idx, block, experiment_parameters)
     block.layers += _create_template_layers(template)
@@ -114,9 +133,9 @@ def _setup_block_inputs(layout, experiment_parameters):
 
 
 def _setup_block_input(layout, row_idx, block, experiment_parameters):
-    if row_idx == 0 and len(block.input_layers) > 0:
-        block.input_layers = list()
-    elif row_idx == 0:
+    if row_idx == 0:
+        if len(block.input_layers) > 0:
+            block.input_layers = list()
         return
     previous_row = layout.get_rows()[row_idx - 1]
     if len(previous_row.get_blocks()) == 1:
@@ -196,20 +215,23 @@ def mutate_blueprint(blueprint, parameters,
                      layout_mutation_count=1, layout_mutables=None, mutate_in_place=True):
     if not mutate_in_place:
         blueprint = deepcopy(blueprint)
-    if rand.random() < p_mutate_layout:
-        _mutate_layout(
+    if parameters.is_layout_search():
+        if rand.random() < p_mutate_layout:
+            _mutate_layout(
+                blueprint.layout,
+                parameters,
+                mutables=layout_mutables,
+                mutation_count=layout_mutation_count)
+    if parameters.is_parameters_search():
+        _mutate_layer_parameters(
             blueprint.layout,
             parameters,
-            mutables=layout_mutables,
-            mutation_count=layout_mutation_count)
-    _mutate_layer_parameters(
-        blueprint.layout,
-        parameters,
-        p_mutate_param=p_mutate_param)
-    _mutate_optimizer(
-        blueprint.training.optimizer,
-        parameters,
-        p_mutate_param=p_mutate_param)
+            p_mutate_param=p_mutate_param)
+    if parameters.is_optimizer_search():
+        _mutate_optimizer(
+            blueprint.training.optimizer,
+            parameters,
+            p_mutate_param=p_mutate_param)
     return blueprint
 
 
@@ -233,8 +255,8 @@ def _mutate_layout_rows(layout, parameters):
         parameters.get_layout_parameter('rows'),
         current_rows)
     if new_rows > current_rows:
-        for _ in range(current_rows, new_rows):
-            layout.rows.append(_random_layout_row(layout, parameters))
+        for row_idx in range(current_rows, new_rows):
+            layout.rows.append(_random_layout_row(layout, row_idx, parameters))
     else:
         while len(layout.get_rows()) > new_rows:
             idx = rand.randint(0, len(layout.rows) - 1)
@@ -274,7 +296,9 @@ def _mutate_layout_layers(layout, parameters):
         for _ in range(current_layers, new_layers):
             layers = get_allowed_new_block_layers(block.layers)
             layer = random_list_element(layers)
-            block.layers.append(Layer(layer, dict()))
+            layer_parameters = random_param_value(
+                parameters.get_layer_parameters(layer))
+            block.layers.append(Layer(layer, layer_parameters))
     else:
         while len(block.layers) > new_layers:
             idx = rand.randint(0, len(block.layers) - 1)
@@ -320,8 +344,12 @@ def _mix_trainings(parents, parameters, p_mutate_param=0.05):
         metric=parents[0].metric,
         stopping=parents[0].stopping,
         batch_size=parents[0].batch_size)
-    training.optimizer = _mix_optimizers([p.optimizer for p in parents])
-    _mutate_optimizer(training.optimizer, parameters, p_mutate_param)
+    parent_optimizers = [p.optimizer for p in parents]
+    if parameters.is_optimizer_search():
+        training.optimizer = _mix_optimizers(parent_optimizers)
+        _mutate_optimizer(training.optimizer, parameters, p_mutate_param)
+    else:
+        training.optimizer = random_list_element(parent_optimizers)
     return training
 
 
@@ -335,17 +363,22 @@ def _mix_layouts(parent_layouts, parameters, p_mutate_param=0.05):
         output_size=parent_layouts[0].output_size,
         output_activation=parent_layouts[0].output_activation,
         block=parent_layouts[0].block,
-        block_input=parent_layouts[0].block_input,
-        rows=parent_layouts[0].rows)
-    rows = random_list_element([len(p.rows) for p in parent_layouts])
-    for row_idx in range(rows):
-        parent_rows = [p.rows[row_idx] for p in parent_layouts if row_idx < len(p.rows)]
-        layout.rows.append(_mix_row(layout, row_idx, parent_rows, parameters))
-    _setup_block_inputs(layout, parameters)
-    _mutate_layer_parameters(
-        layout,
-        parameters,
-        p_mutate_param=p_mutate_param)
+        block_input=parent_layouts[0].block_input)
+    if parameters.is_layout_search():
+        rows = random_list_element([len(p.rows) for p in parent_layouts])
+        for row_idx in range(rows):
+            parent_rows = [p.rows[row_idx] for p in parent_layouts if row_idx < len(p.rows)]
+            layout.rows.append(_mix_row(layout, row_idx, parent_rows, parameters))
+        _setup_block_inputs(layout, parameters)
+        if parameters.is_parameters_search():
+            _mutate_layer_parameters(
+                layout,
+                parameters,
+                p_mutate_param=p_mutate_param)
+    else:
+        layout.rows = random_list_element([
+            parent_layouts[0].rows,
+            parent_layouts[1].rows])
     return layout
 
 

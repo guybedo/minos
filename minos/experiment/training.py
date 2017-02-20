@@ -25,6 +25,10 @@ class Training(object):
 
 
 class EpochStoppingCondition(object):
+    """ Stop training after a fixed number of epochs
+        # Arguments
+        epoch: number of epochs after which training will be stopped.
+    """
 
     def __init__(self, epoch):
         self.epoch = epoch
@@ -33,7 +37,14 @@ class EpochStoppingCondition(object):
         return dict(vars(self))
 
 
-class MetricDecreaseStoppingCondition(EarlyStopping):
+class AccuracyDecreaseStoppingCondition(EarlyStopping):
+    """ Stop training when the metric observed has stopped improving.
+        # Arguments
+        noprogress_count: number of epochs with no improvement
+            after which training will be stopped.
+        min_epoch: minimum number of epochs.
+        max_epoch: maximum number of epochs.
+    """
 
     def __init__(self, noprogress_count=3, min_epoch=0, max_epoch=0):
         super().__init__(

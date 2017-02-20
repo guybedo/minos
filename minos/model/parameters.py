@@ -9,6 +9,10 @@ from minos.model.parameter import int_param, string_param, boolean_param,\
 
 
 reference_parameters = {
+    'search': {
+        'layout': boolean_param(default=True),
+        'parameters': boolean_param(default=True),
+        'optimizer': boolean_param(default=True)},
     'layout': {
         'rows': int_param(lo=1, hi=3, default=1),
         'blocks': int_param(lo=1, hi=5, default=1),

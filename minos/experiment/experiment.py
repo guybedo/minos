@@ -73,9 +73,9 @@ def experiment_step_logger(experiment, step, blueprints):
     with open(generation_log_filename, 'w') as generation_file:
         individuals = [blueprint.todict() for blueprint in blueprints]
         json.dump(individuals, generation_file, indent=1, sort_keys=True)
-        
+
     blueprints = [
-        Blueprint(**{k:v for k,v in vars(blueprint).items() if k!='fitness'})
+        Blueprint(**{k: v for k, v in vars(blueprint).items() if k != 'fitness'})
         for blueprint in blueprints]
     generation_data_filename = experiment.get_step_data_filename(step)
     with open(generation_data_filename, 'wb') as generation_file:
@@ -84,11 +84,39 @@ def experiment_step_logger(experiment, step, blueprints):
 
 def run_experiment(experiment, runner,
                    resume=False, log_level='INFO', **params):
+    check_experiment_parameters(experiment)
     setup_experiment(experiment, resume, log_level)
     runner(
         experiment,
         step_logger=experiment_step_logger,
         **params)
+
+
+class InvalidParametersException(Exception):
+
+    def __init__(self, detail):
+        super().__init__('Invalid parameters: %s' % detail)
+
+
+def check_experiment_parameters(experiment):
+    _assert_search_parameters_defined(experiment.parameters)
+    if not experiment.parameters.is_layout_search()\
+            and not experiment.layout.block:
+        raise InvalidParametersException(
+            'You have to specify a block template '
+            + ' if you disable layout search')
+    if experiment.parameters.is_layout_search()\
+            and not experiment.parameters.is_parameters_search():
+        raise InvalidParametersException(
+            'If you do a layout search, '
+            + ' you have to enable parameters search too')
+
+
+def _assert_search_parameters_defined(experiment_parameters):
+    for param_name in reference_parameters['search'].keys():
+        value = experiment_parameters.get_search_parameter(param_name)
+        if value is None or not isinstance(value, bool):
+            raise InvalidParametersException('undefined search parameter: %s' % param_name)
 
 
 def load_experiment_blueprints(experiment_label, step, environment=Environment()):
@@ -140,6 +168,27 @@ class ExperimentParameters(object):
         else:
             node[path[0]] = value
         return node
+
+    def is_layout_search(self):
+        return self.get_search_parameter('layout')
+
+    def is_parameters_search(self):
+        return self.get_search_parameter('parameters')
+
+    def is_optimizer_search(self):
+        return self.get_search_parameter('optimizer')
+
+    def get_search_parameter(self, name):
+        return self.get_parameter('search', name)
+
+    def search_parameter(self, name, value):
+        return self._set_parameter(
+            ['search', name],
+            value)
+
+    def all_search_parameters(self, value):
+        for param_name in self.get_parameter('search').keys():
+            self.search_parameter(param_name, value)
 
     def layout_parameter(self, name, value):
         return self._set_parameter(

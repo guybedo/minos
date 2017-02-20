@@ -135,25 +135,28 @@ def is_valid_param_value(param, value):
 
 
 def mutate_param(param, value):
-    if isinstance(param, dict):
-        return {
-            name: mutate_param(nested, value.get(name, None))
-            for name, nested in param.items()}
-    if not isinstance(param, Parameter):
-        return value
-    if param.optional and rand.random() < 0.5:
-        return None
-    if param.values:
-        element = random_list_element(param.values)
-        while element == value:
+    try:
+        if isinstance(param, dict):
+            return {
+                name: mutate_param(nested, value.get(name, None))
+                for name, nested in param.items()}
+        if not isinstance(param, Parameter):
+            return value
+        if param.optional and value is not None and rand.random() < 0.5:
+            return None
+        if param.values:
             element = random_list_element(param.values)
-        return element
-    value = value or 0
-    std = (param.hi - param.lo) / 2
-    new_value = param.param_type(numpy.random.normal(value, std, 1)[0])
-    while not is_valid_param_value(param, new_value) or new_value == value:
+            while element == value:
+                element = random_list_element(param.values)
+            return element
+        value = value or 0
+        std = (param.hi - param.lo) / 2
         new_value = param.param_type(numpy.random.normal(value, std, 1)[0])
-    return new_value
+        while not is_valid_param_value(param, new_value) or new_value == value:
+            new_value = param.param_type(numpy.random.normal(value, std, 1)[0])
+        return new_value
+    except Exception as ex:
+        raise
 
 
 def _is_optional_param(param):
@@ -211,3 +214,15 @@ def random_list_element(elements):
     if len(elements) == 1:
         return elements[0]
     return elements[rand.randint(0, len(elements) - 1)]
+
+
+def default_param_value(param):
+    if isinstance(param, dict):
+        return {
+            name: default_param_value(value)
+            for name, value in param.items()}
+    elif isinstance(param, Parameter):
+        if param.default is not None or param.optional:
+            return param.default
+    else:
+        return param

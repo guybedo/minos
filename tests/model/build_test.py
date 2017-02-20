@@ -5,14 +5,15 @@ Created on Feb 15, 2017
 '''
 import unittest
 
-from minos.experiment.experiment import Experiment, ExperimentParameters
+from minos.experiment.experiment import Experiment, ExperimentParameters,\
+    check_experiment_parameters
 from minos.experiment.training import Training, EpochStoppingCondition
 from minos.model.build import ModelBuilder
-from minos.model.design import create_random_blueprint, mix_blueprints
+from minos.model.design import create_random_blueprint, mix_blueprints,\
+    mutate_blueprint
 from minos.model.model import Layout, Objective, Metric
 from minos.model.parameter import int_param, string_param, float_param
 from minos.train.utils import cpu_device
-from build.lib.minos.model.design import mutate_blueprint
 
 
 class BuildTest(unittest.TestCase):
@@ -35,6 +36,7 @@ class BuildTest(unittest.TestCase):
         experiment_parameters.layer_parameter('Dense.output_dim', int_param(10, 500))
         experiment_parameters.layer_parameter('Dense.activation', string_param(['relu', 'tanh']))
         experiment_parameters.layer_parameter('Dropout.p', float_param(0.1, 0.9))
+        experiment_parameters.all_search_parameters(True)
         experiment = Experiment(
             'test',
             layout,
@@ -43,6 +45,7 @@ class BuildTest(unittest.TestCase):
             test_batch_iterator=None,
             environment=None,
             parameters=experiment_parameters)
+        check_experiment_parameters(experiment)
         for _ in range(10):
             blueprint1 = create_random_blueprint(experiment)
             model = ModelBuilder().build(blueprint1, cpu_device())
@@ -56,8 +59,6 @@ class BuildTest(unittest.TestCase):
             blueprint4 = mutate_blueprint(blueprint1, experiment_parameters, mutate_in_place=False)
             model = ModelBuilder().build(blueprint4, cpu_device())
             self.assertIsNotNone(model, 'Should have built a model')
-
-            
 
 
 if __name__ == "__main__":
