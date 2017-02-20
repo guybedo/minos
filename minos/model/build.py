@@ -52,6 +52,9 @@ def _build_row_model(inputs, row):
 def _build_block_model(inputs, block):
     if isinstance(inputs, list) and len(inputs) == 1:
         inputs = inputs[0]
+    if block.input_layers and len(block.input_layers) > 0:
+        for layer in block.input_layers:
+            inputs = _build_layer_model(inputs, layer)
     for layer in block.layers:
         inputs = _build_layer_model(inputs, layer)
     return inputs

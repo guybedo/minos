@@ -61,14 +61,18 @@ class Row(object):
 
 class Block(object):
 
-    def __init__(self, layers=None):
+    def __init__(self, layers=None, input_layers=None):
         self.layers = layers or list()
+        self.input_layers = input_layers or list()
 
     def get_layers(self):
         return self.layers
 
     def todict(self):
         return {
+            'input_layers': [
+                layer.todict()
+                for layer in self.input_layers],
             'layers': [
                 layer.todict()
                 for layer in self.layers]}
