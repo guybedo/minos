@@ -1,4 +1,4 @@
-## What for
+# Minos
 
 Search for neural networks architecture & hyper parameters with genetic algorithms.
 It is built on top of Keras+Tensorflow to build/traing/evaluate the models, and uses DEAP for the genetic algorithms.
