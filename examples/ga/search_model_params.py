@@ -22,17 +22,22 @@ max_words = 1000
 
 
 def build_layout(input_size, output_size):
-    """ Here we define a minimal layout. We don't specify the architecture.
-    Layouts will be randomly generated using the min and max numbers of rows, blocks and layers
+    """ Here we define a layout with a predefined architecture.
+    We also fix some parameters that we don't want to evolve. Other layer parameters
+    will be tested with random values.
     """
     return Layout(
         input_size=input_size,
         output_size=output_size,
-        output_activation='softmax')
+        output_activation='softmax',
+        block=[
+            ('Dense', {'activation': 'relu'}),
+            'Dropout',
+            ('Dense', {'output_dim': 100})])
 
 
 def custom_experiment_parameters():
-    """ Here we define the exeriment parameters.
+    """ Here we define the experiment parameters.
     We are using use_default_values=True, which will initialize
     all the parameters with their default values. These parameters are then fixed
     for the duration of the experiment and won't evolve.
@@ -44,10 +49,15 @@ def custom_experiment_parameters():
     and tested during the experiment. We can redefine some parameters if we want to
     fix their values.
     Reference parameters and default values are defined in minos.model.parameters
+
+    We set the rows, blocks and layers parameters to 1 as we have specified a fixed layout.
+    We also set the 'layout' search parameter to False to disable the layout search
     """
     experiment_parameters = ExperimentParameters(use_default_values=True)
-    experiment_parameters.layout_parameter('blocks', int_param(1, 5))
-    experiment_parameters.layout_parameter('layers', int_param(1, 5))
+    experiment_parameters.search_parameter('layout', False)
+    experiment_parameters.layout_parameter('blocks', 1)
+    experiment_parameters.layout_parameter('blocks', 1)
+    experiment_parameters.layout_parameter('layers', 1)
     experiment_parameters.layer_parameter('Dense.output_dim', int_param(10, 500))
     experiment_parameters.layer_parameter('Dense.activation', string_param(['relu', 'tanh']))
     experiment_parameters.layer_parameter('Dropout.p', float_param(0.1, 0.9))

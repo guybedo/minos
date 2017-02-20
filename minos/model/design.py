@@ -70,7 +70,7 @@ def _random_layout(layout, experiment_parameters):
             Row(blocks=[
                 _instantiate_layout_block(
                     layout,
-                    row_idx,
+                    0,
                     experiment_parameters)])]
     if experiment_parameters.is_parameters_search():
         _set_layout_random_parameters(layout, experiment_parameters)

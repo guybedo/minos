@@ -22,6 +22,9 @@ max_words = 1000
 
 
 def build_layout(input_size, output_size):
+    """ Here we define a minimal layout. We don't specify the architecture.
+    Layouts will be randomly generated using the min and max numbers of rows, blocks and layers
+    """
     return Layout(
         input_size=input_size,
         output_size=output_size,
@@ -29,7 +32,20 @@ def build_layout(input_size, output_size):
 
 
 def custom_experiment_parameters():
-    experiment_parameters = ExperimentParameters()
+    """ Here we define the experiment parameters.
+    We are using use_default_values=True, which will initialize
+    all the parameters with their default values. These parameters are then fixed
+    for the duration of the experiment and won't evolve.
+    That means that we need to manually specify which parametres we want to test,
+    and the possible values, either intervals or lists of values.
+
+    If we want to test all the parameters and possible values, we can
+    set use_default_values to False. In that case, random values will be generated
+    and tested during the experiment. We can redefine some parameters if we want to
+    fix their values.
+    Reference parameters and default values are defined in minos.model.parameters
+    """
+    experiment_parameters = ExperimentParameters(use_default_values=True)
     experiment_parameters.layout_parameter('blocks', int_param(1, 5))
     experiment_parameters.layout_parameter('layers', int_param(1, 5))
     experiment_parameters.layer_parameter('Dense.output_dim', int_param(10, 500))
@@ -38,19 +54,30 @@ def custom_experiment_parameters():
     return experiment_parameters
 
 
-def metric_decrease_stopping_condition():
+def accuracy_decrease_stopping_condition():
+    """ This stopping condition lets the training continue as long as the
+    accuracy improves and stops if it doesn't improve for 5 epochs
+    """
     return AccuracyDecreaseStoppingCondition(
         min_epoch=2,
         max_epoch=10,
-        noprogress_count=5,
-        measurement_interval=0.25)
+        noprogress_count=5)
 
 
 def epoch_stopping_condition():
+    """ This stopping condition lets the training run for 10 epochs
+    """
     return EpochStoppingCondition(epoch=10)
 
 
 def search_model(experiment_label, steps, batch_size=32):
+    """ This is where we put everythin together.
+    We get the dataset, build the Training and Experiment objects, and run the experiment.
+    The experiments logs are generated in ~/minos/experiment_label
+    We use the CpuEnvironment to have the experiment run on the cpu, with 2 parralel processes.
+    We could use GpuEnvironment to use GPUs, and specify which GPUs to use, and how many tasks
+    per GPU
+    """
     batch_iterator, test_batch_iterator, nb_classes = get_reuters_dataset(batch_size, max_words)
     layout = build_layout(max_words, nb_classes)
     training = Training(
@@ -76,6 +103,9 @@ def search_model(experiment_label, steps, batch_size=32):
 
 
 def load_best_model(experiment_label, step):
+    """ Here we load the blueprints generated during an experiment
+    and create the Keras model from the top scoring blueprint
+    """
     blueprints = load_experiment_blueprints(
         experiment_label,
         step,
