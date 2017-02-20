@@ -78,4 +78,4 @@ To create an experiment you need to define:
         
 ## Documentation
 For now there is no documentation. Best thing to do is to have a look at the examples in https://github.com/guybedo/minos/tree/develop/examples.
-This isn't complex to use, the examples should be enough to start trying things and running experiments.
+This is quite straightforward to use, the examples should be enough to start trying things and running experiments.
