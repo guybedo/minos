@@ -12,6 +12,7 @@ from keras.engine.training import Model
 from keras.layers.core import Dense
 from keras.regularizers import L1L2Regularizer
 import traceback
+from minos.train.utils import cpu_device
 
 
 class ModelBuilder(object):
@@ -19,11 +20,12 @@ class ModelBuilder(object):
     def __init__(self):
         pass
 
-    def build(self, blueprint, device, compile_model=True):
+    def build(self, blueprint, device,
+              optimizer_device=cpu_device(), compile_model=True):
         model = _build_model(blueprint, device)
         if compile_model:
             model.compile(
-                optimizer=_build_optimizer(blueprint.training),
+                optimizer=_build_optimizer(blueprint.training, optimizer_device),
                 loss=blueprint.training.objective.objective,
                 metrics=[blueprint.training.metric.metric])
         return model
@@ -107,6 +109,8 @@ def _get_regularizer(regularizer_parameter):
     return L1L2Regularizer(l1, l2)
 
 
-def _build_optimizer(training):
-    optimizer = getattr(keras.optimizers, training.optimizer.optimizer)
-    return optimizer(**training.optimizer.parameters)
+def _build_optimizer(training, device):
+    import tensorflow as tf
+    with tf.device(device):
+        optimizer = getattr(keras.optimizers, training.optimizer.optimizer)
+        return optimizer(**training.optimizer.parameters)
