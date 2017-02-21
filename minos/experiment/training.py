@@ -47,9 +47,6 @@ class AccuracyDecreaseStoppingCondition(object):
     """
 
     def __init__(self, noprogress_count=3, min_epoch=0, max_epoch=0):
-        super().__init__(
-            monitor='val_accuracy',
-            patience=noprogress_count)
         self.noprogress_count = noprogress_count
         self.min_epoch = min_epoch
         self.max_epoch = max_epoch

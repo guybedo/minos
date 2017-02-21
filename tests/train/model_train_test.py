@@ -7,14 +7,14 @@ import tempfile
 import unittest
 
 from minos.experiment.experiment import ExperimentParameters, Experiment
-from minos.experiment.training import Training, EpochStoppingCondition
+from minos.experiment.training import Training, EpochStoppingCondition,\
+    AccuracyDecreaseStoppingCondition
 from minos.model.build import ModelBuilder
 from minos.model.design import create_random_blueprint
 from minos.model.model import Layout, Objective, Optimizer, Metric
 from minos.train.utils import default_device, CpuEnvironment
 from minos.utils import disable_sysout
 from tests.fixtures import get_reuters_dataset
-from build.lib.minos.experiment.training import AccuracyDecreaseStoppingCondition
 
 
 class TrainTest(unittest.TestCase):
