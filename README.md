@@ -46,36 +46,6 @@ To create an experiment you need to define:
         from the row below.
     Block:
         A block is vertical stack of layers. The output of each layer in the block is the input of the
-        layer immediately above
-    Layer:
-        A Keras layer : Dense, Dropout, ...
-
-    ExperimentParameters:
-        Defines all the parameters that can be tested. This can be layer parameters such as the dropout value,
-        the regularization type and value, etc... this can be the parameters of the optimizer...
-        You can :
-            - initialize the ExperimentParameters with the default values for each parameters.
-              In that case you then need to override the parameters you want to search and specify
-              the intervals or collections of values to be randomly tested
-            - initialize the ExperimentParameters without default values.
-              In that case all the parameters will be randomly tested
-        The reference parameter intervals and default values can be found in minos.model.parameters
-
-    Training:
-        Defines the training parameters used to evaluate the randomly generated models.
-        You specify the objective(loss), the metric, the stopping condition and the optimizer.
-        The hyper parameters for the optimizers can also be randomly tested
-
-
-    Blueprint:
-        Blueprints are generated randomly from the experiment parameters you specify.
-        A blueprint is the definition that is used to build and train/evaluate a Keras model.
-        During the experiment random blueprints are generated, mixed, mutated and evaluated
-        by training and evaluating the Keras model they define
-
-    Model:
-        A Keras model built using a blueprint
-
 ## Getting Started
 To run an experiment and search parameters and/or architecture for a model and dataset, you can define a simple layout
 with the input_size, output_size and output_activation of your model
@@ -168,6 +138,38 @@ run_ga_search_experiment(experiment, population_size=2, generations=2)
 
 ## Limitations
 The current version only works with 1D data, so no RNN, LSTM, Convolutions for now...
+
+
+        layer immediately above
+    Layer:
+        A Keras layer : Dense, Dropout, ...
+
+    ExperimentParameters:
+        Defines all the parameters that can be tested. This can be layer parameters such as the dropout value,
+        the regularization type and value, etc... this can be the parameters of the optimizer...
+        You can :
+            - initialize the ExperimentParameters with the default values for each parameters.
+              In that case you then need to override the parameters you want to search and specify
+              the intervals or collections of values to be randomly tested
+            - initialize the ExperimentParameters without default values.
+              In that case all the parameters will be randomly tested
+        The reference parameter intervals and default values can be found in minos.model.parameters
+
+    Training:
+        Defines the training parameters used to evaluate the randomly generated models.
+        You specify the objective(loss), the metric, the stopping condition and the optimizer.
+        The hyper parameters for the optimizers can also be randomly tested
+
+
+    Blueprint:
+        Blueprints are generated randomly from the experiment parameters you specify.
+        A blueprint is the definition that is used to build and train/evaluate a Keras model.
+        During the experiment random blueprints are generated, mixed, mutated and evaluated
+        by training and evaluating the Keras model they define
+
+    Model:
+        A Keras model built using a blueprint
+
 
 
 ## Documentation
