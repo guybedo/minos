@@ -6,10 +6,10 @@ Created on Dec 5, 2016
 from genericpath import isfile
 import json
 import logging
+import numpy
 from os import path
 import pickle
 from random import Random
-from statistics import mean
 
 from deap import creator, base, tools
 
@@ -175,7 +175,7 @@ def log_generation_info(generation, population):
         for individual in population]
     generation_info = [
         {'generation': generation},
-        {'average': mean(population_scores)},
+        {'average': numpy.mean(population_scores)},
         {'best_scores': [
             best.fitness.values[0]
             for best in sorted_population[:3]]}]
