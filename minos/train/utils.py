@@ -5,7 +5,7 @@ Created on Feb 12, 2017
 '''
 import logging
 from os import path, makedirs
-from os.path import isdir, join
+from os.path import join
 from posix import access, W_OK
 from random import Random
 import traceback
@@ -76,7 +76,7 @@ class Environment(object):
 
 class CpuEnvironment(Environment):
 
-    def __init__(self, n_jobs, data_dir=None,
+    def __init__(self, n_jobs=1, data_dir=None,
                  tf_logging_level=tf.logging.ERROR):
         super().__init__(
             ['/cpu:0'],
@@ -87,10 +87,10 @@ class CpuEnvironment(Environment):
 
 class GpuEnvironment(Environment):
 
-    def __init__(self, n_jobs, data_dir=None,
+    def __init__(self, devices=None, n_jobs=1, data_dir=None,
                  tf_logging_level=tf.logging.ERROR):
         super().__init__(
-            get_available_gpus(),
+            devices or get_available_gpus(),
             n_jobs,
             data_dir=data_dir,
             tf_logging_level=tf_logging_level)
