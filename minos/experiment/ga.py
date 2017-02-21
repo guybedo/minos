@@ -58,10 +58,11 @@ class GaBlueprint(Blueprint, GaIndividual):
 
 
 def run_ga_search_experiment(experiment, population_size=50,
-                             generations=100, resume=False):
+                             generations=100, resume=False, log_level='INFO'):
     run_experiment(
         GaModelExperiment(experiment),
         search,
         resume=resume,
+        log_level=log_level,
         population_size=population_size,
         generations=generations)

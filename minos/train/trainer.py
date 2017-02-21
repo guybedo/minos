@@ -94,7 +94,7 @@ class ModelTrainer(object):
             self._setup_tf(device)
             nb_epoch, stopping_callbacks = self._get_stopping_parameters(blueprint)
             start = time()
-            _history = model.fit_generator(
+            history = model.fit_generator(
                 self.batch_iterator,
                 self.batch_iterator.samples_per_epoch,
                 nb_epoch,
@@ -104,11 +104,11 @@ class ModelTrainer(object):
             score = model.evaluate_generator(
                 self.test_batch_iterator,
                 val_samples=self.test_batch_iterator.sample_count)
-            return score[1], blueprint, (time() - start), device_id
+            return score[1], history.epoch[-1], blueprint, (time() - start), device_id
         except Exception as ex:
             logging.error(ex)
             logging.error(traceback.format_exc())
-        return 0, blueprint, 0, device_id
+        return 0, 0, blueprint, 0, device_id
 
     def _get_stopping_parameters(self, blueprint):
         if isinstance(blueprint.training.stopping, EpochStoppingCondition):
@@ -143,12 +143,16 @@ def model_training_worker(batch_iterator, test_batch_iterator,
     while work:
         try:
             idx, total, blueprint = work
-            logging.debug('Processing blueprint %d/%d' % (idx, total))
+            logging.debug('Processing blueprint %d/%d', idx, total)
             result = model_trainer.train(
                 blueprint,
                 device_id,
                 device)
-            logging.debug('Blueprint %d score %f' % (idx, result[0]))
+            logging.debug(
+                'Blueprint %d: score %f after %d epochs',
+                idx,
+                result[0],
+                result[1])
             result_queue.put([idx] + list(result))
             work = work_queue.get()
         except Exception as ex:
