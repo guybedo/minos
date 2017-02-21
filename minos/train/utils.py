@@ -4,6 +4,7 @@ Created on Feb 12, 2017
 @author: julien
 '''
 import logging
+import numpy
 from os import path, makedirs
 from os.path import join
 from posix import access, W_OK
@@ -124,7 +125,7 @@ class SimpleBatchIterator(object):
             X = self.X_transform.fit_transform(X)
         if self.y_transform:
             y = self.y_transform.fit_transform(y)
-        return X, y
+        return numpy.asarray(X), numpy.asarray(y)
 
     def __iter__(self):
         return self
