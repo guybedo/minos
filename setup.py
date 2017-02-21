@@ -3,7 +3,7 @@ from setuptools import find_packages
 
 
 setup(name='Minos',
-      version='0.0.1',
+      version='0.1.0',
       description='Search architecture & hyper parameters for neural nets',
       author='Julien Roch',
       author_email='julien.roch@akalea.com',
@@ -14,10 +14,7 @@ setup(name='Minos',
       install_requires=[
           'numpy>=1.12',
           'keras',
-          'deap==1.1.0'],
-      dependency_links=[
-          "git+ssh://git@github.com/DEAP/deap.git@a1412d71b50606a7e4e87c3ba538b25603b84266#egg=deap-1.1.0"
-      ],
+          'deap>=1.0.2'],
       extras_require={
           'tests': ['pytest',
                     'pytest-cov',
