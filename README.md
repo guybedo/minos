@@ -38,7 +38,7 @@ experiment_parameters = ExperimentParameters(use_default_values=True)
 ```
 
 You can then specify the search space for each parameter you want to test.
-For example, to test architectures with 1 row, 1 block per row, and up to 5 layers: 
+For example, to test architectures with 1 row, 1 block per row, and up to 5 layers per block: 
 
 ```
 from minos.model.parameter import int_param
@@ -47,7 +47,7 @@ experiment_parameters.layout_parameter('blocks', 1)
 experiment_parameters.layout_parameter('layers', int_param(1, 5))
 ```
 
-If you want to test layers with size between 100 and 500 units:
+If you want to test layers with size between 10 and 500 units:
 ```
 experiment_parameters.layer_parameter('Dense.output_dim', int_param(10, 500))
 ```
@@ -68,7 +68,7 @@ environment=GpuEnvironment(
 
 The Experiment is then created with all the information necessary and the training and validation data.
 Training and validation data are provided as batch iterators that generate (X,y) tuples.
-You can use SimpleBatchIterator to create a batch iterator from (X, y) arrays. The iterators need to be able to loop over the data when they reach the need, so you need to set the parameter autoloop=True.
+You can use SimpleBatchIterator to create a batch iterator from (X, y) arrays. The iterators need to be able to loop over the data when they reach the end, so you need to set the parameter autoloop=True.
 
 ```
 from minos.train.utils import SimpleBatchIterator
@@ -79,8 +79,8 @@ experiment = Experiment(
     experiment_label='test__reuters_experiment',
     layout=layout,
     training=training,
-    batch_iterator,
-    test_batch_iterator,
+    batch_iterator=batch_iterator,
+    test_batch_iterator=test_batch_iterator,
     environment=environment,
     parameters=experiment_parameters)
 ```
@@ -114,6 +114,7 @@ The logs should look like that :
 2017-02-21 07:40:25 [DEBUG] root: Blueprint 8: score 0.176298 after 57 epochs
 2017-02-21 07:41:08 [DEBUG] root: Blueprint 11: score 0.063068 after 24 epochs
 2017-02-21 07:45:55 [DEBUG] root: Blueprint 10: score 0.022587 after 65 epoch
+2017-02-21 10:02:29 [INFO] root: [{"generation": 0}, {"average": 0.36195365556387343}, {"best_scores": [0.842769172996606, 0.8392491032735243, 0.8354356464279401]}]
 ```
 
 ## Limitations
