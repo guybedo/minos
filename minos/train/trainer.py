@@ -132,6 +132,7 @@ class ModelTrainer(object):
         import tensorflow as tf
         config = tf.ConfigProto()
         if is_gpu_device(device):
+            config.allow_soft_placement = True
             config.gpu_options.visible_device_list = str(
                 get_device_idx(device))
             config.gpu_options.allow_growth = True
