@@ -60,6 +60,11 @@ class MultiProcessModelTrainer(object):
             while self.process_count > 0:
                 result = result_queue.get()
                 if result:
+                    logging.debug(
+                        'Blueprint %d: score %f after %d epochs',
+                        result[0],
+                        result[1],
+                        result[2])
                     results.append(result)
                 else:
                     self.process_count -= 1
@@ -115,7 +120,10 @@ class ModelTrainer(object):
             nb_epoch = blueprint.training.stopping.epoch
             stopping_callbacks = []
         if isinstance(blueprint.training.stopping, AccuracyDecreaseStoppingCondition):
-            nb_epoch = blueprint.training.stopping.max_epoch
+            nb_epoch = max(
+                1,
+                blueprint.training.stopping.min_epoch,
+                blueprint.training.stopping.max_epoch)
             stopping_callbacks = [
                 AccuracyDecreaseStoppingConditionWrapper(blueprint.training.stopping)]
         return nb_epoch, stopping_callbacks
@@ -143,16 +151,10 @@ def model_training_worker(batch_iterator, test_batch_iterator,
     while work:
         try:
             idx, total, blueprint = work
-            logging.debug('Processing blueprint %d/%d', idx, total)
             result = model_trainer.train(
                 blueprint,
                 device_id,
                 device)
-            logging.debug(
-                'Blueprint %d: score %f after %d epochs',
-                idx,
-                result[0],
-                result[1])
             result_queue.put([idx] + list(result))
             work = work_queue.get()
         except Exception as ex:
