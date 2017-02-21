@@ -75,7 +75,101 @@ To create an experiment you need to define:
 
     Model:
         A Keras model built using a blueprint
-        
+
+## Getting Started
+To run an experiment and search parameters and/or architecture for a model and dataset, you can define a simple layout
+with the input_size, output_size and output_activation of your model
+
+```
+from minos.model.model import Layout
+layout = Layout(
+    input_size=1000,
+    output_size=25,
+    output_activation='softmax')
+```
+
+Then you define the parameters of the training. If you specify only the name of the optimizer to use, and no parameters, random parameters will be tested during the experiment, hopefully converging  to optimal parameters.
+You can choose to stop the training after a fixed number of epochs, or when the accuracy of the model evaluated stops increasing.
+
+```
+from minos.model.model import Objective, Optimizer, Metric
+from minos.experiment.training import Training, EpochStoppingCondition
+training = Training(
+    objective=Objective('categorical_crossentropy'),
+    optimizer=Optimizer(optimizer='Adam'),
+    metric=Metric('categorical_accuracy'),
+    stopping=EpochStoppingCondition(10),
+    batch_size=50)
+```
+
+Now you need to define which parameters will be randomly tested. 
+An ExperimentParameters contains all the parameters that can be tested. It can be initialized with the default values for each parameter so that you only redefine the parameters you want to test, specifying intervals or list of values for example
+
+```
+from minos.experiment.experiment import ExperimentParameters
+experiment_parameters = ExperimentParameters(use_default_values=False)
+```
+
+You can then specify the search space for each parameter you want to test.
+For example, to test architectures with 1 row, 1 block per row, and up to 5 layers: 
+
+```
+from minos.model.parameter import int_param
+experiment_parameters.layout_parameter('rows', 1)
+experiment_parameters.layout_parameter('blocks', 1)
+experiment_parameters.layout_parameter('layers', int_param(1, 5))
+```
+
+If you want to test layers with size between 100 and 500 units:
+```
+experiment_parameters.layer_parameter('Dense.output_dim', int_param(10, 500))
+```
+
+You can find all the parameters and their default values here: https://github.com/guybedo/minos/blob/develop/minos/model/parameters.py
+
+Now you need to specify the experiment environment. You can choose to run the experiment on CPU or GPU devices, and specify how many jobs are to be run on each device. To run on CPU, just use CpuEnvironment instead of GpuEnvironment.
+You can define the directory where the experiment logs and data are saved. The default is to create a a minos directory in the current user home.
+
+```
+from minos.train.utils import GpuEnvironment
+environment=GpuEnvironment(
+    ['/gpu:0', '/gpu:1'], 
+    n_jobs=[2, 5],
+    data_dir='/data/minos/experiments')
+```
+
+The Experiment is then created with all the information necessary and the training and validation data.
+Training and validation data are provided as batch iterators that generate (X,y) tuples.
+You can use SimpleBatchIterator to create a batch iterator from (X, y) arrays, or you can implement one yourself if you want.
+
+```
+from minos.train.utils import SimpleBatchIterator
+batch_iterator = SimpleBatchIterator(X, y, batch_size=50)
+test_batch_iterator = SimpleBatchIterator(test_X, test_y, batch_size=50)
+from minos.experiment.experiment import Experiment
+experiment = Experiment(
+    experiment_label='test__reuters_experiment',
+    layout=layout,
+    training=training,
+    batch_iterator,
+    test_batch_iterator,
+    environment=environment,
+    parameters=experiment_parameters)
+```
+
+Then you specify the population size and number of generations and start the experiment.
+Logs and data will be saved in the directory you specified.
+
+```
+from minos.experiment.ga import run_ga_search_experiment
+run_ga_search_experiment(experiment, population_size=2, generations=2)
+```
+
+
+## Limitations
+The current version only works with 1D data, so no RNN, LSTM, Convolutions for now...
+
+
 ## Documentation
 For now there is no documentation. Best thing to do is to have a look at the examples in https://github.com/guybedo/minos/tree/develop/examples.
 This is quite straightforward to use, the examples should be enough to start trying things and running experiments.
