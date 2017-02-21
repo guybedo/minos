@@ -37,7 +37,7 @@ class EpochStoppingCondition(object):
         return dict(vars(self))
 
 
-class AccuracyDecreaseStoppingCondition(EarlyStopping):
+class AccuracyDecreaseStoppingCondition(object):
     """ Stop training when the metric observed has stopped improving.
         # Arguments
         noprogress_count: number of epochs with no improvement
@@ -63,15 +63,24 @@ class AccuracyDecreaseStoppingCondition(EarlyStopping):
         return not self.max_epoch\
             or self.epoch <= self.max_epoch
 
+    def todict(self):
+        return dict(vars(self))
+
+
+class AccuracyDecreaseStoppingConditionWrapper(EarlyStopping):
+
+    def __init(self, accuracy_condition):
+        super().__init__(
+            monitor='val_accuracy',
+            patience=accuracy_condition.noprogress_count)
+        self.accuracy_condition = accuracy_condition
+
     def on_epoch_end(self, epoch, logs=None):
-        self.epoch = epoch
-        if not self.is_at_least_min_epoch():
+        self.accuracy_condition.epoch = epoch
+        if not self.accuracy_condition.is_at_least_min_epoch():
             return
-        if not self.is_at_most_max_epoch():
+        if not self.accuracy_condition.is_at_most_max_epoch():
             self.stopped_epoch = epoch
             self.model.stop_training = True
             return
         super().on_epoch_end(epoch, logs)
-
-    def todict(self):
-        return dict(vars(self))
