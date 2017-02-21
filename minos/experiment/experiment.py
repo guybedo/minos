@@ -9,6 +9,7 @@ from os import path, makedirs
 from os.path import join
 import pickle
 
+from minos.experiment.training import AccuracyDecreaseStoppingCondition
 from minos.model.parameter import Parameter, str_param_name, expand_param_path
 from minos.model.parameters import reference_parameters
 from minos.train.utils import Environment
@@ -110,6 +111,22 @@ def check_experiment_parameters(experiment):
         raise InvalidParametersException(
             'If you do a layout search, '
             + ' you have to enable parameters search too')
+
+    _assert_valid_training_parameters(experiment)
+
+
+def _assert_valid_training_parameters(experiment):
+    if not isinstance(
+            experiment.training.stopping,
+            AccuracyDecreaseStoppingCondition):
+        return
+    training = experiment.training
+    if training.metric.metric != training.stopping.metric:
+        raise InvalidParametersException(
+            'The same metric must be used for training and early stopping, '
+            + '%s != %s' % (
+                training.metric.metric,
+                training.stopping.metric))
 
 
 def _assert_search_parameters_defined(experiment_parameters):

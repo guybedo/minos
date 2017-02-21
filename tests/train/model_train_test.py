@@ -6,9 +6,10 @@ Created on Feb 18, 2017
 import tempfile
 import unittest
 
-from minos.experiment.experiment import ExperimentParameters, Experiment
+from minos.experiment.experiment import ExperimentParameters, Experiment,\
+    _assert_valid_training_parameters
 from minos.experiment.training import Training, EpochStoppingCondition,\
-    AccuracyDecreaseStoppingCondition
+    AccuracyDecreaseStoppingCondition, AccuracyDecreaseStoppingConditionWrapper
 from minos.model.build import ModelBuilder
 from minos.model.design import create_random_blueprint
 from minos.model.model import Layout, Objective, Optimizer, Metric
@@ -79,6 +80,7 @@ class TrainTest(unittest.TestCase):
                 optimizer=Optimizer(optimizer='Adam'),
                 metric=Metric('categorical_accuracy'),
                 stopping=AccuracyDecreaseStoppingCondition(
+                    metric='categorical_accuracy',
                     noprogress_count=2,
                     min_epoch=1,
                     max_epoch=5),
@@ -95,13 +97,17 @@ class TrainTest(unittest.TestCase):
                 test_batch_iterator,
                 CpuEnvironment(n_jobs=1, data_dir=tmp_dir),
                 parameters=experiment_parameters)
+            _assert_valid_training_parameters(experiment)
 
             blueprint = create_random_blueprint(experiment)
             model = ModelBuilder().build(blueprint, default_device())
+            stopping_callbacks = [
+                AccuracyDecreaseStoppingConditionWrapper(blueprint.training.stopping)]
             result = model.fit_generator(
                 generator=batch_iterator,
                 samples_per_epoch=batch_iterator.samples_per_epoch,
                 nb_epoch=10,
+                callbacks=stopping_callbacks,
                 validation_data=test_batch_iterator,
                 nb_val_samples=test_batch_iterator.sample_count)
             self.assertIsNotNone(

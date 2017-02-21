@@ -46,7 +46,9 @@ class AccuracyDecreaseStoppingCondition(object):
         max_epoch: maximum number of epochs.
     """
 
-    def __init__(self, noprogress_count=3, min_epoch=0, max_epoch=0):
+    def __init__(self, metric='accuracy',
+                 noprogress_count=3, min_epoch=0, max_epoch=0):
+        self.metric = metric
         self.noprogress_count = noprogress_count
         self.min_epoch = min_epoch
         self.max_epoch = max_epoch
@@ -54,7 +56,7 @@ class AccuracyDecreaseStoppingCondition(object):
 
     def is_at_least_min_epoch(self):
         return not self.min_epoch\
-            or self.step >= self.min_epoch
+            or self.epoch >= self.min_epoch
 
     def is_at_most_max_epoch(self):
         return not self.max_epoch\
@@ -66,9 +68,9 @@ class AccuracyDecreaseStoppingCondition(object):
 
 class AccuracyDecreaseStoppingConditionWrapper(EarlyStopping):
 
-    def __init(self, accuracy_condition):
+    def __init__(self, accuracy_condition):
         super().__init__(
-            monitor='val_accuracy',
+            monitor=accuracy_condition.metric,
             patience=accuracy_condition.noprogress_count)
         self.accuracy_condition = accuracy_condition
 
