@@ -1,7 +1,7 @@
 # Minos
 
 Search for neural networks architecture & hyper parameters with genetic algorithms.
-It is built on top of Keras+Tensorflow to build/traing/evaluate the models, and uses DEAP for the genetic algorithms.
+It is built on top of Keras+Tensorflow to build/train/evaluate the models, and uses DEAP for the genetic algorithms.
 
 ## Getting Started
 To run an experiment and search parameters and/or architecture for a model and dataset, you can define a simple layout
@@ -34,7 +34,7 @@ An ExperimentParameters contains all the parameters that can be tested. It can b
 
 ```
 from minos.experiment.experiment import ExperimentParameters
-experiment_parameters = ExperimentParameters(use_default_values=False)
+experiment_parameters = ExperimentParameters(use_default_values=True)
 ```
 
 You can then specify the search space for each parameter you want to test.
@@ -67,12 +67,12 @@ environment=GpuEnvironment(
 
 The Experiment is then created with all the information necessary and the training and validation data.
 Training and validation data are provided as batch iterators that generate (X,y) tuples.
-You can use SimpleBatchIterator to create a batch iterator from (X, y) arrays, or you can implement one yourself if you want.
+You can use SimpleBatchIterator to create a batch iterator from (X, y) arrays. The iterators need to be able to loop over the data when they reach the need, so you need to set the parameter autoloop=True.
 
 ```
 from minos.train.utils import SimpleBatchIterator
-batch_iterator = SimpleBatchIterator(X, y, batch_size=50)
-test_batch_iterator = SimpleBatchIterator(test_X, test_y, batch_size=50)
+batch_iterator = SimpleBatchIterator(X, y, batch_size=50, autoloop=True)
+test_batch_iterator = SimpleBatchIterator(test_X, test_y, batch_size=50, autoloop=True)
 from minos.experiment.experiment import Experiment
 experiment = Experiment(
     experiment_label='test__reuters_experiment',
