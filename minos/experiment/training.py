@@ -47,20 +47,26 @@ class AccuracyDecreaseStoppingCondition(object):
     """
 
     def __init__(self, metric='accuracy',
-                 noprogress_count=3, min_epoch=0, max_epoch=0):
+                 noprogress_count=3, min_epoch=0, max_epoch=100):
         self.metric = metric
         self.noprogress_count = noprogress_count
         self.min_epoch = min_epoch
         self.max_epoch = max_epoch
         self.epoch = 0
 
+    def is_min_epoch_defined(self):
+        return self.min_epoch and self.min_epoch > 0
+
+    def is_max_epoch_defined(self):
+        return self.max_epoch and self.max_epoch > 0
+
     def is_at_least_min_epoch(self):
-        return not self.min_epoch\
-            or self.epoch >= self.min_epoch
+        return self.is_min_epoch_defined()\
+            and self.epoch >= self.min_epoch
 
     def is_at_most_max_epoch(self):
-        return not self.max_epoch\
-            or self.epoch <= self.max_epoch
+        return self.is_max_epoch_defined()\
+            and self.epoch <= self.max_epoch
 
     def todict(self):
         return dict(vars(self))
@@ -76,9 +82,11 @@ class AccuracyDecreaseStoppingConditionWrapper(EarlyStopping):
 
     def on_epoch_end(self, epoch, logs=None):
         self.accuracy_condition.epoch = epoch
-        if not self.accuracy_condition.is_at_least_min_epoch():
+        if self.accuracy_condition.is_min_epoch_defined()\
+                and not self.accuracy_condition.is_at_least_min_epoch():
             return
-        if not self.accuracy_condition.is_at_most_max_epoch():
+        if self.accuracy_condition.is_max_epoch_defined()\
+                and not self.accuracy_condition.is_at_most_max_epoch():
             self.stopped_epoch = epoch
             self.model.stop_training = True
             return
