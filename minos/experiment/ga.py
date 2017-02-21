@@ -16,6 +16,12 @@ class GaModelExperiment(Experiment, GaExperiment):
         vars(self).update(vars(experiment))
         self.individual_type = GaBlueprint
 
+    def evaluate(self, individuals):
+        blueprints = [
+            GaBlueprint(individual=individual)
+            for individual in individuals]
+        return super().evaluate(blueprints)
+
     def random_individual(self):
         return GaBlueprint(individual=create_random_blueprint(self))
 
