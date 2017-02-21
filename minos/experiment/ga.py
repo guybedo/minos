@@ -18,7 +18,7 @@ class GaModelExperiment(Experiment, GaExperiment):
 
     def evaluate(self, individuals):
         blueprints = [
-            GaBlueprint(individual=individual)
+            Blueprint(individual.layout, individual.training)
             for individual in individuals]
         return super().evaluate(blueprints)
 
