@@ -5,10 +5,13 @@ Created on Feb 12, 2017
 '''
 import logging
 from multiprocessing import Queue, Process
+import numpy
 from threading import Thread
 from time import time
 import traceback
 
+from keras.callbacks import ModelCheckpoint
+from keras.models import load_model
 from minos.experiment.training import EpochStoppingCondition,\
     AccuracyDecreaseStoppingCondition, AccuracyDecreaseStoppingConditionWrapper
 from minos.train.utils import is_gpu_device, get_device_idx, get_logical_device
@@ -86,34 +89,44 @@ class ModelTrainer(object):
         self.batch_iterator = batch_iterator
         self.test_batch_iterator = test_batch_iterator
 
-    def train(self, blueprint, device_id, device):
+    def train(self, blueprint, device,
+              save_best_model=False, model_filename=None):
         try:
             model = self.model_builder.build(
                 blueprint,
                 get_logical_device(device))
         except Exception as ex:
-            return 0, blueprint, 0, device_id
-
+            return None, None, 0
         try:
-            disable_sysout()
             self._setup_tf(device)
-            nb_epoch, stopping_callbacks = self._get_stopping_parameters(blueprint)
+            nb_epoch, callbacks = self._get_stopping_parameters(blueprint)
+            if save_best_model:
+                callbacks.append(self._get_model_save_callback(
+                    model_filename,
+                    blueprint.training.metric.metric))
             start = time()
             history = model.fit_generator(
                 self.batch_iterator,
                 self.batch_iterator.samples_per_epoch,
                 nb_epoch,
-                callbacks=stopping_callbacks,
+                callbacks=callbacks,
                 validation_data=self.test_batch_iterator,
                 nb_val_samples=self.test_batch_iterator.sample_count)
-            score = model.evaluate_generator(
-                self.test_batch_iterator,
-                val_samples=self.test_batch_iterator.sample_count)
-            return score[1], history.epoch[-1], blueprint, (time() - start), device_id
+            if save_best_model:
+                del model
+                model = load_model(model_filename)
+            return model, history, (time() - start)
         except Exception as ex:
             logging.error(ex)
             logging.error(traceback.format_exc())
-        return 0, 0, blueprint, 0, device_id
+        return None, None, 0
+
+    def _get_model_save_callback(self, model_filename, metric):
+        checkpoint = ModelCheckpoint(
+            model_filename,
+            monitor=metric,
+            save_best_only=True)
+        return checkpoint
 
     def _get_stopping_parameters(self, blueprint):
         if isinstance(blueprint.training.stopping, EpochStoppingCondition):
@@ -145,18 +158,20 @@ class ModelTrainer(object):
 
 def model_training_worker(batch_iterator, test_batch_iterator,
                           device_id, device, work_queue, result_queue):
+    disable_sysout()
     model_trainer = ModelTrainer(
         batch_iterator,
         test_batch_iterator)
     work = work_queue.get()
     while work:
         try:
-            idx, total, blueprint = work
-            result = model_trainer.train(
+            idx, _total, blueprint = work
+            _model, history, duration = model_trainer.train(
                 blueprint,
-                device_id,
                 device)
-            result_queue.put([idx] + list(result))
+            epoch = numpy.argmax(history.history[blueprint.training.metric.metric])
+            score = history.history[blueprint.training.metric.metric][epoch]
+            result_queue.put((idx, score, epoch, blueprint, duration, device_id))
             work = work_queue.get()
         except Exception as ex:
             logging.error(ex)
