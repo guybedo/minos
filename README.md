@@ -5,6 +5,8 @@ It is built on top of Keras+Tensorflow to build/train/evaluate the models, and u
 
 ## Getting Started
 
+You need to have tensorflow installed, see [tensorflow linux](requirements-tensorflow-linux.txt) or [tensorflow mac](requirements-tensorflow-mac.txt)
+
 Install minos:
 ```
 pip install pyminos==0.1.0
@@ -58,7 +60,7 @@ If you want to test layers with size between 10 and 500 units:
 experiment_parameters.layer_parameter('Dense.output_dim', int_param(10, 500))
 ```
 
-You can find all the parameters and their default values here: https://github.com/guybedo/minos/blob/develop/minos/model/parameters.py
+You can find all the parameters and their default values here in [parameters] (minos/model/parameters.py)
 
 Now you need to specify the experiment environment. 
 You can choose to run the experiment on CPU or GPU devices, and specify how many jobs are to be run on each device. To run on CPU, just use CpuEnvironment instead of GpuEnvironment.
