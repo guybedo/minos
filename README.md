@@ -117,6 +117,35 @@ The logs should look like that :
 2017-02-21 10:02:29 [INFO] root: [{"generation": 0}, {"average": 0.36195365556387343}, {"best_scores": [0.842769172996606, 0.8392491032735243, 0.8354356464279401]}]
 ```
 
+You can stop the experiment and resume later by setting the 'resume' parameter to True. It will restart at the last epoch saved. 
+
+```
+run_ga_search_experiment(
+    experiment, 
+    population_size=100, 
+    generations=100,
+    resume=True)
+```
+
+Once you are done, you can load the best blueprint produced at a specific step, and then build/train/evaluate the model.
+
+```
+from minos.experiment.experiment import load_experiment_best_blueprint
+blueprint = load_experiment_best_blueprint(
+    experiment.label,
+    generations - 1,
+    environment=CpuEnvironment(n_jobs=2, data_dir=tmp_dir))
+    
+from minos.model.build import ModelBuilder
+from minos.train.utils import cpu_device
+model = ModelBuilder().build(
+    blueprint,
+    cpu_device())
+score = model.evaluate_generator(
+    test_batch_iterator,
+    val_samples=test_batch_iterator.sample_count)
+```
+
 ## Limitations
 The current version only works with 1D data, so no RNN, LSTM, Convolutions for now...
 
