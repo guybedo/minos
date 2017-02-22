@@ -4,6 +4,12 @@ Search for neural networks architecture & hyper parameters with genetic algorith
 It is built on top of Keras+Tensorflow to build/train/evaluate the models, and uses DEAP for the genetic algorithms.
 
 ## Getting Started
+
+Install minos:
+```
+pip install pyminos==0.1.0
+```
+
 To run an experiment and search parameters and/or architecture for a model and dataset, you can define a simple layout
 with the input_size, output_size and output_activation of your model
 
