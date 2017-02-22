@@ -5,6 +5,7 @@ Created on Feb 6, 2017
 '''
 from copy import deepcopy
 import json
+import logging
 from os import path, makedirs
 from os.path import join
 import pickle
@@ -49,6 +50,11 @@ class Experiment(object):
             self.get_experiment_data_dir(),
             'experiment.step.%d.data' % step)
 
+    def get_checkpoint_filename(self):
+        return path.join(
+            self.get_experiment_data_dir(),
+            'experiment.chkpt')
+
     def evaluate(self, blueprints):
         from minos.train.trainer import MultiProcessModelTrainer
         model_trainer = MultiProcessModelTrainer(
@@ -69,27 +75,51 @@ def setup_experiment(experiment, resume=False, log_level='INFO'):
         resume=resume)
 
 
-def experiment_step_logger(experiment, step, blueprints):
-    generation_log_filename = experiment.get_step_log_filename(step)
-    with open(generation_log_filename, 'w') as generation_file:
-        individuals = [blueprint.todict() for blueprint in blueprints]
-        json.dump(individuals, generation_file, indent=1, sort_keys=True)
-
+def experiment_step_logger(experiment, step, individuals):
     blueprints = [
-        Blueprint(**{k: v for k, v in vars(blueprint).items() if k != 'fitness'})
-        for blueprint in blueprints]
-    generation_data_filename = experiment.get_step_data_filename(step)
-    with open(generation_data_filename, 'wb') as generation_file:
+        individual.to_blueprint()
+        for individual in individuals]
+    with open(experiment.get_step_log_filename(step), 'w') as generation_file:
+        json.dump(
+            [blueprint.todict() for blueprint in blueprints],
+            generation_file,
+            indent=1,
+            sort_keys=True)
+    with open(experiment.get_step_data_filename(step), 'wb') as generation_file:
         pickle.dump(blueprints, generation_file, -1)
+
+    with open(experiment.get_checkpoint_filename(), 'wb') as checkpoint:
+        data = {
+            'step': step,
+            'blueprints': blueprints}
+        pickle.dump(data, checkpoint, -1)
+
+
+def load_experiment_checkpoint(experiment):
+    try:
+        with open(experiment.get_checkpoint_filename(), 'rb') as checkpoint:
+            data = pickle.load(checkpoint)
+        return data['step'], data['blueprints']
+    except:
+        logging.error('Could not load experiment checkpoint')
+        return 0, None
 
 
 def run_experiment(experiment, runner,
                    resume=False, log_level='INFO', **params):
     check_experiment_parameters(experiment)
     setup_experiment(experiment, resume, log_level)
+    population = None
+    population_age = 0
+    if resume:
+        logging.info('Trying to resume experiment')
+        step, population = load_experiment_checkpoint(experiment)
+        population_age = step + 1
     runner(
         experiment,
         step_logger=experiment_step_logger,
+        population_age=population_age,
+        population=population,
         **params)
 
 
@@ -134,6 +164,16 @@ def _assert_search_parameters_defined(experiment_parameters):
         value = experiment_parameters.get_search_parameter(param_name)
         if value is None or not isinstance(value, bool):
             raise InvalidParametersException('undefined search parameter: %s' % param_name)
+
+
+def load_experiment_best_blueprint(experiment_label, step, environment=Environment()):
+    blueprints = load_experiment_blueprints(
+        experiment_label,
+        step,
+        environment)
+    if len(blueprints) == 0:
+        return None
+    return list(sorted(blueprints, key=lambda b: -b.score[0]))[0]
 
 
 def load_experiment_blueprints(experiment_label, step, environment=Environment()):
@@ -240,11 +280,13 @@ class ExperimentParameters(object):
 
 class Blueprint(object):
 
-    def __init__(self, layout, training):
+    def __init__(self, layout, training, score=None):
         self.layout = layout
         self.training = training
+        self.score = score
 
     def todict(self):
         return {
             'layout': self.layout.todict(),
-            'training': self.training.todict()}
+            'training': self.training.todict(),
+            'score': self.score}

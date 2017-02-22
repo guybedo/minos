@@ -68,10 +68,10 @@ def init_ga_env(experiment):
 
 
 def evolve(population=None, population_size=50,
-           generations=50, offspring_count=2, cx_prob=0.5,
+           population_age=0, generations=50, offspring_count=2, cx_prob=0.5,
            mutpb_prob=0.2, aliens_ratio=0.1, generation_logger=None):
     population = population or toolbox.population(n=population_size)
-    for generation in range(generations):
+    for generation in range(population_age, generations):
         logging.info('Evolving generation %d' % generation)
         fit_invalid_individuals(population)
         population = list(sorted(
@@ -110,60 +110,34 @@ def fit_invalid_individuals(population):
 
 
 def search(experiment, population_size=50, generations=100,
-           resume=False, log_level='INFO', step_logger=None):
+           population_age=0, population=None, log_level='INFO', step_logger=None):
     init_ga_env(experiment)
-    population = None
-    if resume:
-        population_filename = _get_population_filename(
-            experiment.get_experiment_data_dir(),
-            experiment.label)
-        if not isfile(population_filename):
-            raise Exception('Previous population file not found, resume impossible')
-        population = load_population(population_filename)
+    if population:
+        population = [
+            toolbox.make_individual(individual)
+            for individual in population]
         if len(population) < population_size:
             population += toolbox.population(n=population_size - len(population))
     evolve(
         population=population,
+        population_age=population_age,
         population_size=population_size,
         generations=generations,
-        generation_logger=build_generation_logger(experiment, step_logger))
+        generation_logger=get_generation_logger(experiment, step_logger))
 
 
 def _get_population_filename(output_dir, experiment_label):
     return path.join(output_dir, '%s.population' % experiment_label)
 
 
-def build_generation_logger(experiment, step_logger=None):
-
-    population_filename = _get_population_filename(
-        experiment.get_experiment_data_dir(),
-        experiment.label)
+def get_generation_logger(experiment, step_logger=None):
 
     def _log(generation, population):
-        save_population(population, population_filename)
-        log_generation_info(
-            generation,
-            population)
-        if step_logger:
-            step_logger(experiment, generation, population)
+        if not step_logger:
+            return
+        step_logger(experiment, generation, population)
 
     return _log
-
-
-def load_population(population_filename):
-    logging.info('Loading population %s' % population_filename)
-    if not isfile(population_filename):
-        logging.info('Population file %s not found!' % population_filename)
-        return None
-    with open(population_filename, 'rb') as population_file:
-        return pickle.load(population_file)
-
-
-def save_population(population, population_filename):
-    if not population_filename:
-        return
-    with open(population_filename, 'wb') as population_file:
-        pickle.dump(population, population_file, -1)
 
 
 def log_generation_info(generation, population):

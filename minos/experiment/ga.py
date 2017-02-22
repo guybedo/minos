@@ -46,8 +46,21 @@ class GaBlueprint(Blueprint, GaIndividual):
         individual = kwargs.get('individual', None)
         if individual:
             vars(self).update(vars(individual))
+            score = getattr(individual, 'score', None)
+            if score:
+                self.fitness.values = score
         else:
             vars(self).update(kwargs)
+
+    def to_blueprint(self):
+        blueprint = Blueprint(**{
+            k: v
+            for k, v in vars(self).items()
+            if k != 'fitness'})
+        fitness = getattr(self, 'fitness', None)
+        if fitness:
+            blueprint.score = fitness.values
+        return blueprint
 
     @classmethod
     def copy(cls, other_individual):

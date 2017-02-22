@@ -46,8 +46,8 @@ class AccuracyDecreaseStoppingCondition(object):
         max_epoch: maximum number of epochs.
     """
 
-    def __init__(self, metric='accuracy',
-                 noprogress_count=3, min_epoch=0, max_epoch=100):
+    def __init__(self, max_epoch, metric='accuracy',
+                 noprogress_count=3, min_epoch=0):
         self.metric = metric
         self.noprogress_count = noprogress_count
         self.min_epoch = min_epoch
