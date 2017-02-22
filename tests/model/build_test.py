@@ -46,7 +46,7 @@ class BuildTest(unittest.TestCase):
             environment=None,
             parameters=experiment_parameters)
         check_experiment_parameters(experiment)
-        for _ in range(10):
+        for _ in range(25):
             blueprint1 = create_random_blueprint(experiment)
             model = ModelBuilder().build(blueprint1, cpu_device())
             self.assertIsNotNone(model, 'Should have built a model')

@@ -80,9 +80,14 @@ class Block(object):
 
 class Layer(object):
 
-    def __init__(self, layer_type, parameters=None):
+    def __init__(self, layer_type,
+                 parameters=None, parameter_constraints=None):
         self.layer_type = layer_type
         self.parameters = parameters or dict()
+        self.parameter_constraints = parameter_constraints or dict()
+
+    def apply_constraints(self):
+        self.parameters.update(self.parameter_constraints)
 
     def todict(self):
         return dict(vars(self))
