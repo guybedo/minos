@@ -88,26 +88,30 @@ def _set_layer_random_parameters(layer, experiment_parameters):
     layer.parameters = {
         name: random_param_value(param)
         for name, param in param_space.items()}
+    layer.apply_constraints()
 
 
-def _random_layout_row(layout, row_idx, experiment_parameters):
+def _random_layout_row(layout, row_idx, 
+                       experiment_parameters, init_layer_parameters=False):
     blocks = random_param_value(param=experiment_parameters.get_layout_parameter('blocks'))
     return Row([
         _random_layout_block(
             layout,
             row_idx,
-            experiment_parameters)
+            experiment_parameters,
+            init_layer_parameters=init_layer_parameters)
         for _ in range(blocks)])
 
 
 def _instantiate_layout_block(layout, row_idx, experiment_parameters):
     block = Block()
     _setup_block_input(layout, row_idx, block, experiment_parameters)
-    block.layers = _create_template_layers(layout.block)
+    block.layers = _create_template_layers(layout.block, experiment_parameters)
     return block
 
 
-def _random_layout_block(layout, row_idx, experiment_parameters):
+def _random_layout_block(layout, row_idx,
+                         experiment_parameters, init_layer_parameters=False):
     if layout.block:
         return _instantiate_layout_block(layout, row_idx, experiment_parameters)
     layers = random_param_value(experiment_parameters.get_layout_parameter('layers'))
@@ -117,12 +121,13 @@ def _random_layout_block(layout, row_idx, experiment_parameters):
         if len(block_layers) == 0:
             break
         new_layer = random_list_element(allowed_layers)
-        layer_parameters = random_param_value(
-            experiment_parameters.get_layer_parameters(new_layer))
-        template.append((new_layer, layer_parameters))
+        template.append(new_layer)
     block = Block()
     _setup_block_input(layout, row_idx, block, experiment_parameters)
-    block.layers += _create_template_layers(template)
+    block.layers += _create_template_layers(
+        template,
+        experiment_parameters,
+        init_layer_parameters)
     return block
 
 
@@ -147,7 +152,9 @@ def _setup_block_input(layout, row_idx, block, experiment_parameters):
     template = layout.block_input
     if not template:
         template = [('Merge', dict(mode='concat'))]
-    block.input_layers = _create_template_layers(template)
+    block.input_layers = _create_template_layers(template, experiment_parameters)
+    for layer in block.input_layers:
+        layer.apply_constraints()
 
 
 def _get_layer_type(layer):
@@ -178,12 +185,20 @@ def _is_first_layers_match_template(layers, template):
     return True
 
 
-def _create_template_layers(template):
-    return [
-        Layer(
-            str_param_name(layer[0] if isinstance(layer, tuple) else layer),
-            deepcopy(layer[1]) if isinstance(layer, tuple) else dict())
-        for layer in template]
+def _create_template_layers(template, experiment_parameters, init_layer_parameters=False):
+    layers = list()
+    for layer_definition in template:
+        layer_type = layer_definition[0]\
+            if isinstance(layer_definition, tuple) else layer_definition
+        parameter_constraints = deepcopy(layer_definition[1])\
+            if isinstance(layer_definition, tuple) else dict()
+        layer = Layer(
+            layer_type,
+            parameter_constraints=parameter_constraints)
+        if init_layer_parameters:
+            _set_layer_random_parameters(layer, experiment_parameters)
+        layers.append(layer)
+    return layers
 
 
 def is_allowed_block_layer(layers, new_layer):
@@ -256,7 +271,12 @@ def _mutate_layout_rows(layout, parameters):
         current_rows)
     if new_rows > current_rows:
         for row_idx in range(current_rows, new_rows):
-            layout.rows.append(_random_layout_row(layout, row_idx, parameters))
+            layout.rows.append(
+                _random_layout_row(
+                    layout, 
+                    row_idx, 
+                    parameters,
+                    init_layer_parameters=True))
     else:
         while len(layout.get_rows()) > new_rows:
             idx = rand.randint(0, len(layout.rows) - 1)
@@ -275,7 +295,12 @@ def _mutate_layout_blocks(layout, parameters):
         current_blocks)
     if new_blocks > current_blocks:
         for _ in range(current_blocks, new_blocks):
-            row.blocks.append(_random_layout_block(layout, row_idx, parameters))
+            row.blocks.append(
+                _random_layout_block(
+                    layout,
+                    row_idx,
+                    parameters,
+                    init_layer_parameters=True))
     else:
         while len(row.blocks) > new_blocks:
             idx = rand.randint(0, len(row.blocks) - 1)
@@ -295,10 +320,10 @@ def _mutate_layout_layers(layout, parameters):
     if new_layers > current_layers:
         for _ in range(current_layers, new_layers):
             layers = get_allowed_new_block_layers(block.layers)
-            layer = random_list_element(layers)
-            layer_parameters = random_param_value(
-                parameters.get_layer_parameters(layer))
-            block.layers.append(Layer(layer, layer_parameters))
+            block.layers += _create_template_layers(
+                [random_list_element(layers)],
+                parameters,
+                init_layer_parameters=True)
     else:
         while len(block.layers) > new_layers:
             idx = rand.randint(0, len(block.layers) - 1)
@@ -320,6 +345,7 @@ def _mutate_layer(layer, parameters, p_mutate_param=0.1):
     for name, value in layer.parameters.items():
         if rand.random() < p_mutate_param:
             layer.parameters[name] = mutate_param(param_space[name], value)
+    layer.apply_constraints()
 
 
 def _mutate_optimizer(optimizer, parameters, p_mutate_param=0.1):

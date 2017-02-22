@@ -5,7 +5,6 @@ Created on Feb 15, 2017
 '''
 import unittest
 
-from keras.layers.core import Dense, Dropout
 from minos.experiment.experiment import Experiment, ExperimentParameters,\
     check_experiment_parameters
 from minos.experiment.training import Training
@@ -114,9 +113,9 @@ class DesignTest(unittest.TestCase):
             output_size=10,
             output_activation='softmax',
             block=[
-                (Dense, {'activation': 'relu'}),
-                Dropout,
-                (Dense, {'output_dim': 100})])
+                ('Dense', {'activation': 'relu'}),
+                'Dropout',
+                ('Dense', {'output_dim': 100})])
         training = Training(
             objective=None,
             optimizer=Optimizer(),
@@ -139,7 +138,7 @@ class DesignTest(unittest.TestCase):
             blueprint2 = create_random_blueprint(experiment)
             blueprint3 = mix_blueprints(blueprint1, blueprint2, experiment.parameters)
             blueprint4 = mutate_blueprint(blueprint1, experiment.parameters, mutate_in_place=False)
-            for blueprint in [blueprint1, blueprint2, blueprint3, blueprint4]:
+            for idx, blueprint in enumerate([blueprint1, blueprint2, blueprint3, blueprint4]):
                 self.assertIsNotNone(blueprint, 'Should have created a blueprint')
                 self.assertIsNotNone(blueprint.layout, 'Should have created a layout')
                 self.assertEqual(
@@ -178,7 +177,7 @@ class DesignTest(unittest.TestCase):
                                 self.assertEqual(
                                     value,
                                     block.layers[i].parameters[name],
-                                    'Should have used the predefined parameter value')
+                                    'Should have used the predefined parameter value for blueprint %d' % idx)
 
 
 if __name__ == "__main__":
