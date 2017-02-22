@@ -98,8 +98,7 @@ run_ga_search_experiment(
 ```
 
 Logs and data will be saved in the specified directory, or ~/minos if no directory specified.
-The logs should look like that : 
-
+This is what the logs should look like 
 ```
 2017-02-21 07:25:26 [INFO] root: Evolving generation 0
 2017-02-21 07:25:26 [DEBUG] root: Training 100 models
@@ -118,7 +117,6 @@ The logs should look like that :
 ```
 
 You can stop the experiment and resume later by setting the 'resume' parameter to True. It will restart at the last epoch saved. 
-
 ```
 run_ga_search_experiment(
     experiment, 
@@ -127,20 +125,28 @@ run_ga_search_experiment(
     resume=True)
 ```
 
-Once you are done, you can load the best blueprint produced at a specific step, and then build/train/evaluate the model.
-
+Once you are done, you can load the best blueprint produced at a specific step.
 ```
 from minos.experiment.experiment import load_experiment_best_blueprint
 blueprint = load_experiment_best_blueprint(
-    experiment.label,
-    generations - 1,
+    experiment_label=experiment.label,
+    step=generations - 1,
     environment=CpuEnvironment(n_jobs=2, data_dir=tmp_dir))
+```    
     
+And then build/train/evaluate the model using the Keras API:
+```
 from minos.model.build import ModelBuilder
 from minos.train.utils import cpu_device
 model = ModelBuilder().build(
     blueprint,
     cpu_device())
+model.fit_generator(
+    generator=batch_iterator,
+    samples_per_epoch=batch_iterator.samples_per_epoch,
+    nb_epoch=5,
+    validation_data=test_batch_iterator,
+    nb_val_samples=test_batch_iterator.sample_count)
 score = model.evaluate_generator(
     test_batch_iterator,
     val_samples=test_batch_iterator.sample_count)
