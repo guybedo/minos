@@ -95,3 +95,4 @@ temp/*
 dist/*
 build/*
 Minos.egg-info
+publish.sh

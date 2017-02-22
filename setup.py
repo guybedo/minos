@@ -2,13 +2,14 @@ from setuptools import setup
 from setuptools import find_packages
 
 
-setup(name='Minos',
+setup(name='pyminos',
       version='0.1.0',
-      description='Search architecture & hyper parameters for neural nets',
+      description='Neural nets hyper parameters & architecture search with genetic algorithms',
+      keywords=['keras', 'genetic algorithm', 'neural network', 'deeplearning'],
       author='Julien Roch',
       author_email='julien.roch@akalea.com',
       url='https://github.com/guybedo/minos',
-      license='MIT',
+      license='Apache',
       setup_requires=[
           'numpy>=1.12'],
       install_requires=[
