@@ -133,6 +133,7 @@ def _get_population_filename(output_dir, experiment_label):
 def get_generation_logger(experiment, step_logger=None):
 
     def _log(generation, population):
+        log_generation_info(generation, population)
         if not step_logger:
             return
         step_logger(experiment, generation, population)
