@@ -3,7 +3,7 @@ from setuptools import find_packages
 
 
 setup(name='pyminos',
-      version='0.1.0',
+      version='0.1.1',
       description='Neural nets hyper parameters & architecture search with genetic algorithms',
       keywords=['keras', 'genetic algorithm', 'neural network', 'deeplearning'],
       author='Julien Roch',
@@ -17,6 +17,7 @@ setup(name='pyminos',
           'keras',
           'deap>=1.0.2'],
       extras_require={
+          'h5py': ['h5py'],
           'tests': ['pytest',
                     'pytest-cov',
                     'pytest-pep8',
