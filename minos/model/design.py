@@ -211,7 +211,7 @@ def is_allowed_block_layer(layers, new_layer):
     if new_layer == 'BatchNormalization':
         return len(layers) > 0 and previous_layer_type == 'Dense'
     if new_layer == 'Dropout':
-        return len(layers) > 0
+        return new_layer != previous_layer_type
     return True
 
 
