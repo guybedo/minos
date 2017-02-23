@@ -27,7 +27,7 @@ class Experiment(object):
         self.training = training
         self.batch_iterator = batch_iterator
         self.test_batch_iterator = test_batch_iterator
-        self.environment = environment
+        self.environment = environment or Environment()
         self.parameters = parameters or ExperimentParameters()
 
     def get_experiment_data_dir(self):
@@ -96,13 +96,9 @@ def experiment_step_logger(experiment, step, individuals):
 
 
 def load_experiment_checkpoint(experiment):
-    try:
-        with open(experiment.get_checkpoint_filename(), 'rb') as checkpoint:
-            data = pickle.load(checkpoint)
-        return data['step'], data['blueprints']
-    except:
-        logging.error('Could not load experiment checkpoint')
-        return 0, None
+    with open(experiment.get_checkpoint_filename(), 'rb') as checkpoint:
+        data = pickle.load(checkpoint)
+    return data['step'], data['blueprints']
 
 
 def run_experiment(experiment, runner,
