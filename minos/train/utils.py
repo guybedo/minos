@@ -88,10 +88,10 @@ class CpuEnvironment(Environment):
 
 class GpuEnvironment(Environment):
 
-    def __init__(self, devices=None, n_jobs=1, data_dir=None,
+    def __init__(self, devices=['/gpu:0'], n_jobs=1, data_dir=None,
                  tf_logging_level=tf.logging.ERROR):
         super().__init__(
-            devices or get_available_gpus(),
+            devices,
             n_jobs,
             data_dir=data_dir,
             tf_logging_level=tf_logging_level)

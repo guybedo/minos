@@ -3,8 +3,7 @@ Created on Feb 6, 2017
 
 @author: julien
 '''
-from minos.experiment.experiment import Experiment, ExperimentParameters,\
-    load_experiment_blueprints
+from minos.experiment.experiment import Experiment, ExperimentParameters
 from minos.experiment.ga import run_ga_search_experiment
 from minos.experiment.training import Training, AccuracyDecreaseStoppingCondition,\
     EpochStoppingCondition
@@ -15,6 +14,7 @@ from minos.train.utils import CpuEnvironment, cpu_device, Environment
 
 from examples.ga.dataset import get_reuters_dataset
 import numpy as np
+from build.lib.minos.experiment.experiment import load_experiment_best_blueprint
 
 
 np.random.seed(1337)
@@ -99,19 +99,20 @@ def search_model(experiment_label, steps, batch_size=32):
         experiment,
         population_size=100,
         generations=steps,
-        resume=False)
+        resume=False,
+        log_level='DEBUG')
 
 
 def load_best_model(experiment_label, step):
     """ Here we load the blueprints generated during an experiment
     and create the Keras model from the top scoring blueprint
     """
-    blueprints = load_experiment_blueprints(
+    blueprint = load_experiment_best_blueprint(
         experiment_label,
         step,
         Environment())
     return ModelBuilder().build(
-        blueprints[0],
+        blueprint,
         cpu_device(),
         compile_model=False)
 
