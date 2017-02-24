@@ -115,6 +115,8 @@ class TrainTest(unittest.TestCase):
         disable_sysout()
         with tempfile.TemporaryDirectory() as tmp_dir:
             batch_size = 50
+            min_epoch = 10
+            max_epoch = 15
             batch_iterator, test_batch_iterator, nb_classes = get_reuters_dataset(batch_size, 1000)
             layout = Layout(
                 input_size=1000,
@@ -127,8 +129,8 @@ class TrainTest(unittest.TestCase):
                 stopping=AccuracyDecreaseStoppingCondition(
                     metric='categorical_accuracy',
                     noprogress_count=2,
-                    min_epoch=1,
-                    max_epoch=5),
+                    min_epoch=min_epoch,
+                    max_epoch=max_epoch),
                 batch_size=batch_size)
             experiment_parameters = ExperimentParameters(use_default_values=True)
             experiment_parameters.layout_parameter('rows', 1)
@@ -145,18 +147,12 @@ class TrainTest(unittest.TestCase):
             _assert_valid_training_parameters(experiment)
 
             blueprint = create_random_blueprint(experiment)
-            model = ModelBuilder().build(blueprint, default_device())
-            stopping_callbacks = [
-                AccuracyDecreaseStoppingConditionWrapper(blueprint.training.stopping)]
-            result = model.fit_generator(
-                generator=batch_iterator,
-                samples_per_epoch=batch_iterator.samples_per_epoch,
-                nb_epoch=10,
-                callbacks=stopping_callbacks,
-                validation_data=test_batch_iterator,
-                nb_val_samples=test_batch_iterator.sample_count)
+            trainer = ModelTrainer(batch_iterator, test_batch_iterator)
+            model, history, _duration = trainer.train(blueprint, cpu_device(), save_best_model=False)
+            self.assertTrue(len(history.epoch) >= min_epoch, 'Should have trained for at least min epoch')
+            self.assertTrue(len(history.epoch) <= max_epoch, 'Should have trained for max epoch')
             self.assertIsNotNone(
-                result,
+                model,
                 'should have fit the model')
             score = model.evaluate_generator(
                 test_batch_iterator,
