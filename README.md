@@ -9,10 +9,10 @@ You need to have tensorflow installed, see [tensorflow linux](requirements-tenso
 
 Install minos:
 ```
-pip install pyminos==0.1.3
+pip install pyminos==0.1.4
 ```
 
-To run an experiment and search parameters and/or architecture for a model and dataset, you can define a simple layout
+To run an experiment and search hyper parameters and/or architecture for a model and dataset, you can define a simple layout
 with the input_size, output_size and output_activation of your model
 
 ```
