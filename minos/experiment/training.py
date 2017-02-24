@@ -72,11 +72,19 @@ class AccuracyDecreaseStoppingCondition(object):
         return dict(vars(self))
 
 
+def get_associated_validation_metric(metric):
+    if not metric:
+        return None
+    if metric.startswith('val_'):
+        return metric
+    return 'val_%s' % metric
+
+
 class AccuracyDecreaseStoppingConditionWrapper(EarlyStopping):
 
     def __init__(self, accuracy_condition):
         super().__init__(
-            monitor=accuracy_condition.metric,
+            monitor=get_associated_validation_metric(accuracy_condition.metric),
             patience=accuracy_condition.noprogress_count)
         self.accuracy_condition = accuracy_condition
 
