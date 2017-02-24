@@ -64,10 +64,11 @@ class MultiProcessModelTrainer(object):
                 result = result_queue.get()
                 if result:
                     logging.debug(
-                        'Blueprint %d: score %f after %d epochs',
+                        'Blueprint %d: best score %f, epoch %d/%d',
                         result[0],
                         result[1],
-                        result[2])
+                        result[2],
+                        result[3])
                     results.append(result)
                 else:
                     self.process_count -= 1
@@ -169,9 +170,10 @@ def model_training_worker(batch_iterator, test_batch_iterator,
             _model, history, duration = model_trainer.train(
                 blueprint,
                 device)
-            epoch = numpy.argmax(history.history[blueprint.training.metric.metric])
-            score = history.history[blueprint.training.metric.metric][epoch]
-            result_queue.put((idx, score, epoch, blueprint, duration, device_id))
+            epoch_total = len(history.epoch)
+            epoch_best = numpy.argmax(history.history[blueprint.training.metric.metric])
+            score = history.history[blueprint.training.metric.metric][epoch_best]
+            result_queue.put((idx, score, epoch_best, epoch_total, blueprint, duration, device_id))
             work = work_queue.get()
         except Exception as ex:
             logging.error(ex)
