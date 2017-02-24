@@ -10,7 +10,7 @@ from minos.experiment.experiment import Blueprint
 from minos.experiment.training import Training
 from minos.model.model import Layout, Row, Layer, Block,\
     Optimizer
-from minos.model.parameter import random_param_value, str_param_name,\
+from minos.model.parameter import random_param_value,\
     random_list_element, mutate_param
 
 

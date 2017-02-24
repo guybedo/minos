@@ -150,7 +150,7 @@ def mutate_param(param, value):
                 element = random_list_element(param.values)
             return element
         value = value or 0
-        std = (param.hi - param.lo) / 2
+        std = max((param.hi - param.lo) / 2, .1)
         new_value = param.param_type(numpy.random.normal(value, std, 1)[0])
         while not is_valid_param_value(param, new_value) or new_value == value:
             new_value = param.param_type(numpy.random.normal(value, std, 1)[0])
