@@ -109,7 +109,8 @@ def search_model(experiment_label, steps, batch_size=32):
         experiment,
         population_size=100,
         generations=steps,
-        resume=False)
+        resume=False,
+        log_level='DEBUG')
 
 
 def load_best_model(experiment_label, step):
