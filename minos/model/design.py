@@ -91,7 +91,7 @@ def _set_layer_random_parameters(layer, experiment_parameters):
     layer.apply_constraints()
 
 
-def _random_layout_row(layout, row_idx, 
+def _random_layout_row(layout, row_idx,
                        experiment_parameters, init_layer_parameters=False):
     blocks = random_param_value(param=experiment_parameters.get_layout_parameter('blocks'))
     return Row([
@@ -206,13 +206,9 @@ def is_allowed_block_layer(layers, new_layer):
     if len(layers) > 0:
         previous_layer_type = layers[-1].layer_type\
             if isinstance(layers[-1], Layer) else layers[-1][0]
-        if new_layer == previous_layer_type:
-            return False
     if new_layer == 'BatchNormalization':
-        return len(layers) > 0 and previous_layer_type == 'Dense'
-    if new_layer == 'Dropout':
-        return new_layer != previous_layer_type
-    return True
+        return previous_layer_type == 'Dense'
+    return new_layer != previous_layer_type
 
 
 block_layers = ['Dense', 'Dropout', 'BatchNormalization']
@@ -273,8 +269,8 @@ def _mutate_layout_rows(layout, parameters):
         for row_idx in range(current_rows, new_rows):
             layout.rows.append(
                 _random_layout_row(
-                    layout, 
-                    row_idx, 
+                    layout,
+                    row_idx,
                     parameters,
                     init_layer_parameters=True))
     else:

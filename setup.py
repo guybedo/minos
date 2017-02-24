@@ -3,9 +3,9 @@ from setuptools import find_packages
 
 
 setup(name='pyminos',
-      version='0.1.4',
+      version='0.1.5',
       description='Neural nets hyper parameters & architecture search with genetic algorithms',
-      keywords=['keras', 'genetic algorithm', 'neural network', 'deeplearning'],
+      keywords=['keras', 'genetic algorithm', 'neural network', 'deep learning'],
       author='Julien Roch',
       author_email='julien.roch@akalea.com',
       url='https://github.com/guybedo/minos',

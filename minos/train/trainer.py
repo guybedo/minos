@@ -12,8 +12,10 @@ import traceback
 
 from keras.callbacks import ModelCheckpoint
 from keras.models import load_model
+
 from minos.experiment.training import EpochStoppingCondition,\
-    AccuracyDecreaseStoppingCondition, AccuracyDecreaseStoppingConditionWrapper
+    AccuracyDecreaseStoppingCondition, AccuracyDecreaseStoppingConditionWrapper,\
+    get_associated_validation_metric
 from minos.train.utils import is_gpu_device, get_device_idx, get_logical_device
 from minos.utils import disable_sysout
 
@@ -171,8 +173,9 @@ def model_training_worker(batch_iterator, test_batch_iterator,
                 blueprint,
                 device)
             epoch_total = len(history.epoch)
-            epoch_best = numpy.argmax(history.history[blueprint.training.metric.metric])
-            score = history.history[blueprint.training.metric.metric][epoch_best]
+            val_metric = get_associated_validation_metric(blueprint.training.metric.metric)
+            epoch_best = numpy.argmax(history.history[val_metric])
+            score = history.history[val_metric][epoch_best]
             result_queue.put((idx, score, epoch_best, epoch_total, blueprint, duration, device_id))
             work = work_queue.get()
         except Exception as ex:
