@@ -3,7 +3,7 @@ from setuptools import find_packages
 
 
 setup(name='pyminos',
-      version='0.2.1',
+      version='0.2.2',
       description='Neural nets hyper parameters & architecture search with genetic algorithms',
       keywords=['keras', 'genetic algorithm', 'neural network', 'deep learning'],
       author='Julien Roch',
