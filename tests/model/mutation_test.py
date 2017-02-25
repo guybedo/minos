@@ -88,7 +88,7 @@ class MutationTest(unittest.TestCase):
             environment=None,
             parameters=ExperimentParameters(use_default_values=False))
         experiment.parameters.all_search_parameters(True)
-        for _ in range(50):
+        for _ in range(10):
             blueprint = create_random_blueprint(experiment)
             mutant = mutate_blueprint(
                 blueprint,

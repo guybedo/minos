@@ -188,3 +188,43 @@ reference_parameters = {
         'cosine_proximity'
     ])
 }
+
+block_layers = ['Dense', 'Dropout', 'BatchNormalization']
+custom_layers = dict()
+custom_activations = dict()
+
+
+def get_block_layers():
+    return block_layers + list(custom_layers.keys())
+
+
+def is_custom_layer(name):
+    return name in custom_layers
+
+
+def is_custom_activation(name):
+    return name in custom_activations
+
+
+def get_custom_layers():
+    return dict(custom_layers)
+
+
+def get_custom_layer(name):
+    return custom_layers.get(name, None)
+
+
+def get_custom_activations():
+    return dict(custom_activations)
+
+
+def get_custom_activation(name):
+    return custom_activations.get(name, None)
+
+
+def register_custom_layer(name, layer, params=None):
+    custom_layers[name] = (layer, params)
+
+
+def register_custom_activation(name, activation):
+    custom_activations[name] = activation

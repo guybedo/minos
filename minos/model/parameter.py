@@ -145,15 +145,21 @@ def mutate_param(param, value):
         if param.optional and value is not None and rand.random() < 0.5:
             return None
         if param.values:
+            if len(param.values) == 1:
+                return param.values[0]
             element = random_list_element(param.values)
             while element == value:
                 element = random_list_element(param.values)
             return element
+        elif param.lo == param.hi:
+            return value
         value = value or 0
-        std = max((param.hi - param.lo) / 2, .1)
-        new_value = param.param_type(numpy.random.normal(value, std, 1)[0])
+        std = (param.hi - param.lo) / 10
+        if param.param_type == int:
+            std = max(1, std)
+        new_value = value + param.param_type(numpy.random.normal(0, std, 1)[0])
         while not is_valid_param_value(param, new_value) or new_value == value:
-            new_value = param.param_type(numpy.random.normal(value, std, 1)[0])
+            new_value = value + param.param_type(numpy.random.normal(0, std, 1)[0])
         return new_value
     except Exception as ex:
         raise
