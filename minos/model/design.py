@@ -204,8 +204,12 @@ def _create_template_layers(template, experiment_parameters, init_layer_paramete
 def is_allowed_block_layer(layers, new_layer):
     previous_layer_type = None
     if len(layers) > 0:
-        previous_layer_type = layers[-1].layer_type\
-            if isinstance(layers[-1], Layer) else layers[-1][0]
+        if isinstance(layers[-1], Layer):
+            previous_layer_type = layers[-1].layer_type
+        elif isinstance(layers[-1], tuple):
+            previous_layer_type = layers[-1][0]
+        else:
+            previous_layer_type = layers[-1]
     if new_layer == 'BatchNormalization':
         return previous_layer_type == 'Dense'
     return new_layer != previous_layer_type
