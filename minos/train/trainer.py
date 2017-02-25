@@ -98,9 +98,7 @@ class ModelTrainer(object):
             model = self.model_builder.build(
                 blueprint,
                 get_logical_device(device))
-        except Exception as ex:
-            return None, None, 0
-        try:
+
             self._setup_tf(device)
             nb_epoch, callbacks = self._get_stopping_parameters(blueprint)
             if save_best_model:
@@ -169,13 +167,16 @@ def model_training_worker(batch_iterator, test_batch_iterator,
     while work:
         try:
             idx, _total, blueprint = work
-            _model, history, duration = model_trainer.train(
+            model, history, duration = model_trainer.train(
                 blueprint,
                 device)
-            epoch_total = len(history.epoch)
-            val_metric = get_associated_validation_metric(blueprint.training.metric.metric)
-            epoch_best = numpy.argmax(history.history[val_metric])
-            score = history.history[val_metric][epoch_best]
+            if model and history:
+                epoch_total = len(history.epoch)
+                val_metric = get_associated_validation_metric(blueprint.training.metric.metric)
+                epoch_best = numpy.argmax(history.history[val_metric])
+                score = history.history[val_metric][epoch_best]
+            else:
+                score, epoch_best, epoch_total = 0, 0, 0
             result_queue.put((idx, score, epoch_best, epoch_total, blueprint, duration, device_id))
             work = work_queue.get()
         except Exception as ex:
