@@ -15,7 +15,7 @@ pip install pyminos==0.1.5
 To run an experiment and search hyper parameters and/or architecture for a model and dataset, you can define a simple layout
 with the input_size, output_size and output_activation of your model
 
-```
+```python
 from minos.model.model import Layout
 layout = Layout(
     input_size=1000,
@@ -26,7 +26,7 @@ layout = Layout(
 Then you define the parameters of the training. If you specify only the name of the optimizer to use, and no parameters, random parameters will be tested during the experiment, hopefully converging  to optimal parameters.
 You can choose to stop the training after a fixed number of epochs, or when the accuracy of the model evaluated stops increasing.
 
-```
+```python
 from minos.model.model import Objective, Optimizer, Metric
 from minos.experiment.training import Training, EpochStoppingCondition
 training = Training(
@@ -40,7 +40,7 @@ training = Training(
 Now you need to define which parameters will be randomly tested. 
 An ExperimentParameters contains all the parameters that can be tested. It can be initialized with the default values for each parameter so that you only redefine the parameters you want to test, specifying intervals or list of values for example
 
-```
+```python
 from minos.experiment.experiment import ExperimentParameters
 experiment_parameters = ExperimentParameters(use_default_values=True)
 ```
@@ -48,7 +48,7 @@ experiment_parameters = ExperimentParameters(use_default_values=True)
 You can then specify the search space for each parameter you want to test.
 For example, to test architectures with 1 row, 1 block per row, and up to 5 layers per block: 
 
-```
+```python
 from minos.model.parameter import int_param
 experiment_parameters.layout_parameter('rows', 1)
 experiment_parameters.layout_parameter('blocks', 1)
@@ -56,7 +56,7 @@ experiment_parameters.layout_parameter('layers', int_param(1, 5))
 ```
 
 If you want to test layers with size between 10 and 500 units:
-```
+```python
 experiment_parameters.layer_parameter('Dense.output_dim', int_param(10, 500))
 ```
 
@@ -66,7 +66,7 @@ Now you need to specify the experiment environment.
 You can choose to run the experiment on CPU or GPU devices, and specify how many jobs are to be run on each device. To run on CPU, just use CpuEnvironment instead of GpuEnvironment.
 You can define the directory where the experiment logs and data are saved. If no directory defined, it will create a directory named 'minos' in the user's home.
 
-```
+```python
 from minos.train.utils import GpuEnvironment
 environment=GpuEnvironment(
     ['/gpu:0', '/gpu:1'], 
@@ -78,7 +78,7 @@ The Experiment is then created with all the information necessary and the traini
 Training and validation data are provided as batch iterators that generate (X,y) tuples.
 You can use SimpleBatchIterator to create a batch iterator from (X, y) arrays. The iterators need to be able to loop over the data when they reach the end, so you need to set the parameter autoloop=True.
 
-```
+```python
 from minos.train.utils import SimpleBatchIterator
 batch_iterator = SimpleBatchIterator(X, y, batch_size=50, autoloop=True)
 test_batch_iterator = SimpleBatchIterator(test_X, test_y, batch_size=50, autoloop=True)
@@ -96,7 +96,7 @@ experiment = Experiment(
 Then you specify the population size and number of generations and start the experiment.
 Logs and data will be saved in the directory you specified.
 
-```
+```python
 from minos.experiment.ga import run_ga_search_experiment
 run_ga_search_experiment(
     experiment, 
@@ -107,7 +107,7 @@ run_ga_search_experiment(
 
 Logs and data will be saved in the specified directory, or ~/minos if no directory specified.
 This is what the logs should look like 
-```
+```terminal
 2017-02-21 07:25:26 [INFO] root: Evolving generation 0
 2017-02-21 07:25:26 [DEBUG] root: Training 100 models
 2017-02-21 07:27:29 [DEBUG] root: Blueprint 0: score 0.438252 after 17 epochs
@@ -125,7 +125,7 @@ This is what the logs should look like
 ```
 
 You can stop the experiment and resume later by setting the 'resume' parameter to True. It will restart at the last epoch saved. 
-```
+```python
 run_ga_search_experiment(
     experiment, 
     population_size=100, 
@@ -134,7 +134,7 @@ run_ga_search_experiment(
 ```
 
 Once you are done, you can load the best blueprint produced at a specific step.
-```
+```python
 from minos.experiment.experiment import load_experiment_best_blueprint
 blueprint = load_experiment_best_blueprint(
     experiment_label=experiment.label,
@@ -143,7 +143,7 @@ blueprint = load_experiment_best_blueprint(
 ```    
     
 And then build/train/evaluate the model using the Keras API:
-```
+```python
 from minos.model.build import ModelBuilder
 from minos.train.utils import cpu_device
 model = ModelBuilder().build(
