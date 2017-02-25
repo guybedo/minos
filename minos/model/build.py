@@ -5,13 +5,16 @@ Created on Feb 6, 2017
 '''
 from copy import deepcopy
 import logging
+import traceback
 
 import keras
 from keras.engine.topology import Input, Merge
 from keras.engine.training import Model
 from keras.layers.core import Dense
 from keras.regularizers import L1L2Regularizer
-import traceback
+
+from minos.model.parameters import is_custom_activation, get_custom_activation,\
+    is_custom_layer, get_custom_layers, get_custom_layer
 
 
 class ModelBuilder(object):
@@ -71,16 +74,23 @@ def _maybe_merge_inputs(inputs):
 
 def _build_layer_model(inputs, layer):
     try:
-        modules = [keras.layers, keras.layers.normalization]
-        for module in modules:
-            model = getattr(module, layer.layer_type)
-            if model:
-                break
         parameters = _build_layer_parameters(layer)
+        model = _get_layer_model(layer.layer_type)
         return model(**parameters)(inputs)
     except Exception as ex:
         logging.debug(traceback.format_exc())
         raise ex
+
+
+def _get_layer_model(layer_type):
+    if is_custom_layer(layer_type):
+        return get_custom_layer(layer_type)[0]
+    modules = [keras.layers, keras.layers.normalization]
+    for module in modules:
+        model = getattr(module, layer_type)
+        if model:
+            return model
+    return None
 
 
 def _build_layer_parameters(layer):
@@ -94,6 +104,10 @@ def _build_layer_parameters(layer):
     for regularizer in regularizers:
         if regularizer in parameters:
             parameters[regularizer] = _get_regularizer(parameters[regularizer])
+    activation = parameters.get('activation', None)
+    if activation:
+        if is_custom_activation(activation):
+            parameters['activation'] = get_custom_activation(activation)
     return parameters
 
 

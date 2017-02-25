@@ -12,6 +12,7 @@ from minos.model.model import Layout, Row, Layer, Block,\
     Optimizer
 from minos.model.parameter import random_param_value,\
     random_list_element, mutate_param
+from minos.model.parameters import get_block_layers
 
 
 rand = Random()
@@ -103,22 +104,29 @@ def _random_layout_row(layout, row_idx,
         for _ in range(blocks)])
 
 
-def _instantiate_layout_block(layout, row_idx, experiment_parameters):
+def _instantiate_layout_block(layout, row_idx, experiment_parameters, init_layer_parameters=False):
     block = Block()
     _setup_block_input(layout, row_idx, block, experiment_parameters)
-    block.layers = _create_template_layers(layout.block, experiment_parameters)
+    block.layers = _create_template_layers(
+        layout.block, 
+        experiment_parameters,
+        init_layer_parameters=init_layer_parameters)
     return block
 
 
 def _random_layout_block(layout, row_idx,
                          experiment_parameters, init_layer_parameters=False):
     if layout.block:
-        return _instantiate_layout_block(layout, row_idx, experiment_parameters)
+        return _instantiate_layout_block(
+            layout, 
+            row_idx, 
+            experiment_parameters,
+            init_layer_parameters=init_layer_parameters)
     layers = random_param_value(experiment_parameters.get_layout_parameter('layers'))
     template = []
     for _ in range(layers):
         allowed_layers = get_allowed_new_block_layers(template)
-        if len(block_layers) == 0:
+        if len(allowed_layers) == 0:
             break
         new_layer = random_list_element(allowed_layers)
         template.append(new_layer)
@@ -204,20 +212,21 @@ def _create_template_layers(template, experiment_parameters, init_layer_paramete
 def is_allowed_block_layer(layers, new_layer):
     previous_layer_type = None
     if len(layers) > 0:
-        previous_layer_type = layers[-1].layer_type\
-            if isinstance(layers[-1], Layer) else layers[-1][0]
+        if isinstance(layers[-1], Layer):
+            previous_layer_type = layers[-1].layer_type
+        elif isinstance(layers[-1], tuple):
+            previous_layer_type = layers[-1][0]
+        else:
+            previous_layer_type = layers[-1]
     if new_layer == 'BatchNormalization':
         return previous_layer_type == 'Dense'
     return new_layer != previous_layer_type
 
 
-block_layers = ['Dense', 'Dropout', 'BatchNormalization']
-
-
 def get_allowed_new_block_layers(layers):
     return [
         new_layer
-        for new_layer in block_layers
+        for new_layer in get_block_layers()
         if is_allowed_block_layer(layers, new_layer)]
 
 

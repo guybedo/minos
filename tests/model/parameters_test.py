@@ -5,11 +5,14 @@ Created on Feb 7, 2017
 '''
 import unittest
 
+from keras.layers.core import Dense
+
 from minos.experiment.experiment import ExperimentParameters, Experiment,\
     check_experiment_parameters, InvalidParametersException
 from minos.model.parameter import random_param_value, int_param, float_param,\
     string_param
-from minos.model.parameters import reference_parameters
+from minos.model.parameters import reference_parameters,\
+    register_custom_activation, register_custom_layer
 
 
 class ParametersTest(unittest.TestCase):
@@ -103,6 +106,26 @@ class ParametersTest(unittest.TestCase):
         except InvalidParametersException:
             valid_parameters = False
         self.assertFalse(valid_parameters, 'Should have raised an exception')
+
+    def test_custom_definitions(self):
+
+        def custom_activation(x):
+            return x
+
+        register_custom_activation('custom_activation', custom_activation)
+        register_custom_layer('Dense2', Dense, dict(test='test'))
+        experiment_parameters = ExperimentParameters(use_default_values=False)
+        custom_params = experiment_parameters.get_layer_parameter('Dense2')
+        self.assertIsNotNone(
+            custom_params,
+            'Should have registered custom layer')
+        self.assertTrue(
+            'test' in custom_params,
+            'Should have registered custom layer params')
+        activations = experiment_parameters.get_layer_parameter('Dense.activation')
+        self.assertTrue(
+            'custom_activation' in activations.values,
+            'Should have registered custom_activation')
 
 
 if __name__ == "__main__":

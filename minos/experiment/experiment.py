@@ -12,7 +12,8 @@ import pickle
 
 from minos.experiment.training import AccuracyDecreaseStoppingCondition
 from minos.model.parameter import Parameter, str_param_name, expand_param_path
-from minos.model.parameters import reference_parameters
+from minos.model.parameters import reference_parameters, get_custom_layers,\
+    get_custom_activations
 from minos.train.utils import Environment
 from minos.utils import setup_logging
 
@@ -183,6 +184,7 @@ class ExperimentParameters(object):
 
     def __init__(self, use_default_values=True):
         self.parameters = deepcopy(reference_parameters)
+        self._load_custom_definitions()
         if use_default_values:
             self.parameters = self._init_default_values(self.parameters)
 
@@ -190,10 +192,17 @@ class ExperimentParameters(object):
         if isinstance(node, Parameter):
             if node.default is not None or node.optional:
                 return node.default
-        else:
+        elif isinstance(node, dict):
             for name, value in node.items():
                 node[name] = self._init_default_values(value)
         return node
+
+    def _load_custom_definitions(self):
+        for name, definition in get_custom_layers().items():
+            self.layer_parameter(name, definition[1])
+
+        for name in get_custom_activations().keys():
+            self.add_activation(name)
 
     def get_parameter(self, *path):
         node = self.parameters
@@ -255,6 +264,12 @@ class ExperimentParameters(object):
         return self._set_parameter(
             ['layers', name],
             value)
+
+    def add_activation(self, name):
+        for _layer_name, parameters in self.get_parameter('layers').items():
+            for param_name, param_value in parameters.items():
+                if 'activation' == param_name and isinstance(param_value, Parameter):
+                    param_value.values.append(name)
 
     def get_layer_parameter(self, name):
         return self.get_parameter('layers', name)
