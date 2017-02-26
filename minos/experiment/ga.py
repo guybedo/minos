@@ -25,12 +25,12 @@ class GaModelExperiment(Experiment, GaExperiment):
     def random_individual(self):
         return GaBlueprint(individual=create_random_blueprint(self))
 
-    def mutate_individual(self, individual):
+    def mutate_individual(self, individual, mutate_in_place=False):
         return GaBlueprint(
             individual=mutate_blueprint(
                 individual,
                 self.parameters,
-                mutate_in_place=False))
+                mutate_in_place=mutate_in_place))
 
     def mix_individuals(self, individual1, individual2):
         return GaBlueprint(

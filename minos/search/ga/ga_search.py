@@ -3,12 +3,10 @@ Created on Dec 5, 2016
 
 @author: julien
 '''
-from genericpath import isfile
 import json
 import logging
 import numpy
 from os import path
-import pickle
 from random import Random
 
 from deap import creator, base, tools
@@ -27,7 +25,7 @@ def make_individual(individual_type, original):
 
 
 def mutate(experiment, individual):
-    return toolbox.make_individual(experiment.mutate_individual(individual))
+    experiment.mutate_individual(individual, mutate_in_place=True)
 
 
 def mate(experiment, individual1, individual2, count=2):
@@ -86,13 +84,9 @@ def evolve(population=None, population_size=50,
                 for child in children:
                     del child.fitness.values
                 population += children
-        mutants = [
-            mutant
-            for mutant in population
-            if rand.random() < mutpb_prob]
-        population += [
-            toolbox.mutate(mutant)
-            for mutant in mutants]
+        for mutant in population:
+            if rand.random() < mutpb_prob:
+                toolbox.mutate(mutant)
         if aliens_ratio > 0:
             population += toolbox.population(n=int(population_size * aliens_ratio))
     return population

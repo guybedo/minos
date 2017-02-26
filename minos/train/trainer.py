@@ -86,11 +86,12 @@ class MultiProcessModelTrainer(object):
 
 class ModelTrainer(object):
 
-    def __init__(self, batch_iterator, test_batch_iterator):
+    def __init__(self, batch_iterator, test_batch_iterator, debug=False):
         from minos.model.build import ModelBuilder
         self.model_builder = ModelBuilder()
         self.batch_iterator = batch_iterator
         self.test_batch_iterator = test_batch_iterator
+        self.debug = debug
 
     def train(self, blueprint, device,
               save_best_model=False, model_filename=None):
@@ -118,8 +119,16 @@ class ModelTrainer(object):
                 model = load_model(model_filename)
             return model, history, (time() - start)
         except Exception as ex:
-            logging.error(ex)
-            logging.error(traceback.format_exc())
+            if self.debug:
+                logging.error(ex)
+                logging.error(traceback.format_exc())
+        try:
+            from keras import backend
+            backend.clear_session()
+        except:
+            if self.debug:
+                logging.error(ex)
+                logging.error(traceback.format_exc())
         return None, None, 0
 
     def _get_model_save_callback(self, model_filename, metric):

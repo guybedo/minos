@@ -10,7 +10,7 @@ from minos.experiment.experiment import Blueprint
 from minos.experiment.training import Training
 from minos.model.model import Layout, Row, Layer, Block,\
     Optimizer
-from minos.model.parameter import random_param_value,\
+from minos.model.parameter import random_initial_param_value,\
     random_list_element, mutate_param
 from minos.model.parameters import get_block_layers
 
@@ -47,7 +47,7 @@ def _random_optimizer(optimizer, experiment_parameters):
     if optimizer:
         param_space.update(optimizer.parameters)
     parameters = {
-        name: random_param_value(param)
+        name: random_initial_param_value(param)
         for name, param in param_space.items()}
     return Optimizer(optimizer_id, parameters)
 
@@ -59,7 +59,7 @@ def _random_layout(layout, experiment_parameters):
         layout.output_activation,
         layout.block)
     if experiment_parameters.is_layout_search():
-        rows = random_param_value(experiment_parameters.get_layout_parameter('rows'))
+        rows = random_initial_param_value(experiment_parameters.get_layout_parameter('rows'))
         for row_idx in range(rows):
             layout.rows.append(
                 _random_layout_row(
@@ -87,14 +87,14 @@ def _set_layer_random_parameters(layer, experiment_parameters):
     param_space = deepcopy(experiment_parameters.get_layer_parameters(layer.layer_type))
     param_space.update(layer.parameters)
     layer.parameters = {
-        name: random_param_value(param)
+        name: random_initial_param_value(param)
         for name, param in param_space.items()}
     layer.apply_constraints()
 
 
 def _random_layout_row(layout, row_idx,
                        experiment_parameters, init_layer_parameters=False):
-    blocks = random_param_value(param=experiment_parameters.get_layout_parameter('blocks'))
+    blocks = random_initial_param_value(param=experiment_parameters.get_layout_parameter('blocks'))
     return Row([
         _random_layout_block(
             layout,
@@ -108,7 +108,7 @@ def _instantiate_layout_block(layout, row_idx, experiment_parameters, init_layer
     block = Block()
     _setup_block_input(layout, row_idx, block, experiment_parameters)
     block.layers = _create_template_layers(
-        layout.block, 
+        layout.block,
         experiment_parameters,
         init_layer_parameters=init_layer_parameters)
     return block
@@ -118,11 +118,11 @@ def _random_layout_block(layout, row_idx,
                          experiment_parameters, init_layer_parameters=False):
     if layout.block:
         return _instantiate_layout_block(
-            layout, 
-            row_idx, 
+            layout,
+            row_idx,
             experiment_parameters,
             init_layer_parameters=init_layer_parameters)
-    layers = random_param_value(experiment_parameters.get_layout_parameter('layers'))
+    layers = random_initial_param_value(experiment_parameters.get_layout_parameter('layers'))
     template = []
     for _ in range(layers):
         allowed_layers = get_allowed_new_block_layers(template)
