@@ -145,7 +145,7 @@ def mutate_param(param, value):
         if param.optional and value is not None and rand.random() < 0.5:
             return None
         if param.values:
-            if len(param.values) == 1:
+            if len(set(param.values)) == 1:
                 return param.values[0]
             element = random_list_element(param.values)
             while element == value:
@@ -212,6 +212,26 @@ def random_param_value(param):
     elif param.hi is not None:
         value = rand.random() * param.hi
     return param.param_type(value)
+
+
+def random_initial_param_value(param):
+    if isinstance(param, dict):
+        return _random_dict_param_value(param)
+    if isinstance(param, list) or isinstance(param, tuple):
+        return _random_list_param_value(param)
+    if not isinstance(param, Parameter):
+        return param
+    if param.values:
+        return random_list_element(param.values)
+
+    initial_value = None
+    if param.default is not None:
+        initial_value = param.default
+    elif param.lo is not None:
+        initial_value = param.lo
+    else:
+        initial_value = 0
+    return mutate_param(param, initial_value)
 
 
 def random_list_element(elements):
