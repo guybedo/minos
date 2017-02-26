@@ -87,6 +87,7 @@ def evolve(population=None, population_size=50,
         for mutant in population:
             if rand.random() < mutpb_prob:
                 toolbox.mutate(mutant)
+                del mutant.fitness.values
         if aliens_ratio > 0:
             population += toolbox.population(n=int(population_size * aliens_ratio))
     return population

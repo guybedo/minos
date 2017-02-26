@@ -231,7 +231,7 @@ def get_allowed_new_block_layers(layers):
 
 
 def mutate_blueprint(blueprint, parameters,
-                     p_mutate_layout=0.25, p_mutate_param=0.1,
+                     p_mutate_layout=0.25, p_mutate_param=0.25,
                      layout_mutation_count=1, layout_mutables=None, mutate_in_place=True):
     if not mutate_in_place:
         blueprint = deepcopy(blueprint)
