@@ -231,7 +231,9 @@ def random_initial_param_value(param):
         initial_value = param.lo
     else:
         initial_value = 0
-    return mutate_param(param, initial_value)
+    if rand.random() < 0.5:
+        return mutate_param(param, initial_value)
+    return initial_value
 
 
 def random_list_element(elements):
