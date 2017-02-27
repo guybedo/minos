@@ -163,7 +163,23 @@ def _assert_search_parameters_defined(experiment_parameters):
             raise InvalidParametersException('undefined search parameter: %s' % param_name)
 
 
-def load_experiment_best_blueprint(experiment_label, step, environment=Environment()):
+def load_experiment_best_blueprint(experiment_label, environment=Environment()):
+    experiment = Experiment(experiment_label, environment=environment)
+    last_step, _ = load_experiment_checkpoint(experiment)
+    blueprints = list()
+    for step in range(last_step):
+        blueprint = load_experiment_step_best_blueprint(
+            experiment_label,
+            step,
+            environment=environment)
+        if blueprint:
+            blueprints.append(blueprint)
+    if len(blueprints) == 0:
+        return None
+    return list(sorted(blueprints, key=lambda b: -b.score[0]))[0]
+
+
+def load_experiment_step_best_blueprint(experiment_label, step, environment=Environment()):
     blueprints = load_experiment_blueprints(
         experiment_label,
         step,
@@ -200,6 +216,7 @@ class ExperimentParameters(object):
     def _load_custom_definitions(self):
         for name, definition in get_custom_layers().items():
             self.layer_parameter(name, definition[1])
+            self.add_block_layer_type(name)
 
         for name in get_custom_activations().keys():
             self.add_activation(name)
@@ -270,6 +287,16 @@ class ExperimentParameters(object):
             for param_name, param_value in parameters.items():
                 if 'activation' == param_name and isinstance(param_value, Parameter):
                     param_value.values.append(name)
+
+    def get_block_layer_types(self):
+        return self.get_layout_parameter('block.layer_type').values
+
+    def block_layer_types(self, layer_types):
+        self.layout_parameter('block.layer_type', layer_types)
+
+    def add_block_layer_type(self, layer_type):
+        layer_type_param = self.get_layout_parameter('block.layer_type')
+        layer_type_param.values = list(set(layer_type_param.values + [layer_type]))
 
     def get_layer_parameter(self, name):
         return self.get_parameter('layers', name)

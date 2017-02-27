@@ -115,6 +115,8 @@ class MutationTest(unittest.TestCase):
                         original_block = original_row.blocks[block_idx]
                         original_layer = original_block.layers[layer_idx]
                         for name, value in layer.parameters.items():
+                            if value == original_layer.parameters[name]:
+                                pass
                             self.assertTrue(
                                 value != original_layer.parameters[name],
                                 'Should have mutated parameter')

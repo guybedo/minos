@@ -11,7 +11,8 @@ from minos.experiment.training import Training
 from minos.model.design import create_random_blueprint, mix_blueprints,\
     mutate_blueprint
 from minos.model.model import Optimizer, Layout
-from minos.model.parameter import is_valid_param_value, str_param_name
+from minos.model.parameter import is_valid_param_value, str_param_name,\
+    string_param
 
 
 class DesignTest(unittest.TestCase):
@@ -106,6 +107,35 @@ class DesignTest(unittest.TestCase):
                 blueprint.training.optimizer.parameters['lr'],
                 training.optimizer.parameters['lr'],
                 'Should have copied predefined parameter')
+
+    def test_predefined_layer_type(self):
+        layout = Layout(
+            input_size=100,
+            output_size=10,
+            output_activation='softmax')
+        training = Training(
+            objective=None,
+            optimizer=Optimizer('SGD', {'lr': 1}),
+            metric=None,
+            stopping=None,
+            batch_size=None)
+        experiment = Experiment(
+            'test',
+            layout,
+            training,
+            batch_iterator=None,
+            test_batch_iterator=None,
+            environment=None)
+        layer_types = ['Dropout']
+        experiment.parameters.block_layer_types(string_param(layer_types))
+        for _ in range(10):
+            blueprint = create_random_blueprint(experiment)
+            self.assertIsNotNone(blueprint, 'Should have created a blueprint')
+            for layer in blueprint.layout.get_layers():
+                self.assertTrue(
+                    layer.layer_type in layer_types,
+                    'Should have used predefined layer types')
+            
 
     def test_predefined_layout(self):
         layout = Layout(

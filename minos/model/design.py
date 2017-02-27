@@ -12,7 +12,6 @@ from minos.model.model import Layout, Row, Layer, Block,\
     Optimizer
 from minos.model.parameter import random_initial_param_value,\
     random_list_element, mutate_param
-from minos.model.parameters import get_block_layers
 
 
 rand = Random()
@@ -125,7 +124,7 @@ def _random_layout_block(layout, row_idx,
     layers = random_initial_param_value(experiment_parameters.get_layout_parameter('layers'))
     template = []
     for _ in range(layers):
-        allowed_layers = get_allowed_new_block_layers(template)
+        allowed_layers = get_allowed_new_block_layers(template, experiment_parameters)
         if len(allowed_layers) == 0:
             break
         new_layer = random_list_element(allowed_layers)
@@ -223,10 +222,10 @@ def is_allowed_block_layer(layers, new_layer):
     return new_layer != previous_layer_type
 
 
-def get_allowed_new_block_layers(layers):
+def get_allowed_new_block_layers(layers, parameters):
     return [
         new_layer
-        for new_layer in get_block_layers()
+        for new_layer in parameters.get_block_layer_types()
         if is_allowed_block_layer(layers, new_layer)]
 
 
@@ -324,7 +323,7 @@ def _mutate_layout_layers(layout, parameters):
         current_layers)
     if new_layers > current_layers:
         for _ in range(current_layers, new_layers):
-            layers = get_allowed_new_block_layers(block.layers)
+            layers = get_allowed_new_block_layers(block.layers, parameters)
             block.layers += _create_template_layers(
                 [random_list_element(layers)],
                 parameters,
