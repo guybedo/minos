@@ -22,7 +22,8 @@ reference_parameters = {
                 'concat',
                 'random+concat',
                 'concat+random'], default='concat'),
-            'input_size': float_param(default=1.)}
+            'input_size': float_param(default=1.),
+            'layer_type': string_param(['Dense', 'Dropout', 'BatchNormalization'])}
     },
     'layers': {
         'Dense': {
@@ -116,35 +117,35 @@ reference_parameters = {
     'optimizers': {
         'SGD': {
             'lr': float_param(default=1e-3),
-            'momentum': float_param(default=0),
-            'decay': float_param(default=0),
+            'momentum': float_param(default=0.0),
+            'decay': float_param(default=0.0),
             'nesterov': boolean_param(default=False)},
         'RMSprop': {
             'lr': float_param(default=1e-3),
             'rho': float_param(default=0.9),
             'epsilon': float_param(default=1e-08),
-            'decay': float_param(default=0)},
+            'decay': float_param(default=0.0)},
         'Adagrad': {
             'lr': float_param(default=1e-3),
             'epsilon': float_param(default=1e-08),
-            'decay': float_param(default=0)},
+            'decay': float_param(default=0.0)},
         'Adadelta': {
             'lr': float_param(default=1e-3),
             'rho': float_param(default=0.9),
             'epsilon': float_param(default=1e-08),
-            'decay': float_param(default=0)},
+            'decay': float_param(default=0.0)},
         'Adam': {
             'lr': float_param(default=1e-3),
             'beta_1': float_param(default=0.9),
             'beta_2': float_param(default=0.999),
             'epsilon': float_param(default=1e-08),
-            'decay': float_param(default=0)},
+            'decay': float_param(default=0.0)},
         'Adamax': {
             'lr': float_param(default=1e-3),
             'beta_1': float_param(default=0.9),
             'beta_2': float_param(default=0.999),
             'epsilon': float_param(default=1e-08),
-            'decay': float_param(default=0)},
+            'decay': float_param(default=0.0)},
         'Nadam': {
             'lr': float_param(default=1e-3),
             'beta_1': float_param(default=0.9),
@@ -189,13 +190,9 @@ reference_parameters = {
     ])
 }
 
-block_layers = ['Dense', 'Dropout', 'BatchNormalization']
+
 custom_layers = dict()
 custom_activations = dict()
-
-
-def get_block_layers():
-    return block_layers + list(custom_layers.keys())
 
 
 def is_custom_layer(name):

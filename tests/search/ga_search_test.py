@@ -90,7 +90,6 @@ class GaSearchTest(unittest.TestCase):
             self.assertIsNotNone(population, 'Should have loaded checkpoint')
             blueprint = load_experiment_best_blueprint(
                 experiment.label,
-                generations - 1,
                 environment=CpuEnvironment(n_jobs=2, data_dir=tmp_dir))
             model = ModelBuilder().build(
                 blueprint,
