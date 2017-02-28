@@ -11,7 +11,7 @@ import unittest
 from minos.experiment.experiment import ExperimentParameters, Experiment,\
     _assert_valid_training_parameters
 from minos.experiment.training import Training, EpochStoppingCondition,\
-    AccuracyDecreaseStoppingCondition, AccuracyDecreaseStoppingConditionWrapper
+    AccuracyDecreaseStoppingCondition
 from minos.model.build import ModelBuilder
 from minos.model.design import create_random_blueprint
 from minos.model.model import Layout, Objective, Optimizer, Metric
