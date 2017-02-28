@@ -11,13 +11,12 @@ from time import time
 import traceback
 
 from keras.callbacks import ModelCheckpoint
-from keras.models import load_model
 
 from minos.experiment.training import EpochStoppingCondition,\
     AccuracyDecreaseStoppingCondition, AccuracyDecreaseStoppingConditionWrapper,\
     get_associated_validation_metric
 from minos.train.utils import is_gpu_device, get_device_idx, get_logical_device
-from minos.utils import disable_sysout
+from minos.utils import disable_sysout, load_keras_model
 
 
 class MultiProcessModelTrainer(object):
@@ -116,7 +115,7 @@ class ModelTrainer(object):
                 nb_val_samples=self.test_batch_iterator.sample_count)
             if save_best_model:
                 del model
-                model = load_model(model_filename)
+                model = load_keras_model(model_filename)
             return model, history, (time() - start)
         except Exception as ex:
             if self.debug:
