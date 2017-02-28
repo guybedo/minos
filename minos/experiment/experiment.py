@@ -289,6 +289,11 @@ class ExperimentParameters(object):
                     param_value.values.append(name)
 
     def get_block_layer_types(self):
+        param = self.get_layout_parameter('block.layer_type')
+        if isinstance(param, list):
+            return param
+        elif isinstance(param, str):
+            return [param]
         return self.get_layout_parameter('block.layer_type').values
 
     def block_layer_types(self, layer_types):

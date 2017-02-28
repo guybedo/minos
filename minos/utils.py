@@ -8,9 +8,22 @@ from os.path import isfile
 from posix import remove
 import sys
 
+from keras.models import load_model
+
+from minos.model.parameters import get_custom_layers, get_custom_activations
+
 
 def disable_sysout():
     sys.stdout.write = lambda s: s
+
+
+def load_keras_model(filename):
+    custom_objects = dict()
+    custom_objects.update(get_custom_activations())
+    custom_objects.update({
+        layer[0].__name__: layer[0]
+        for _name, layer in get_custom_layers().items()})
+    return load_model(filename, custom_objects=custom_objects)
 
 
 def setup_logging(filename, level='INFO', resume=False):

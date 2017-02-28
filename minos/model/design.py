@@ -84,6 +84,8 @@ def _set_layout_random_parameters(layout, experiment_parameters):
 
 def _set_layer_random_parameters(layer, experiment_parameters):
     param_space = deepcopy(experiment_parameters.get_layer_parameters(layer.layer_type))
+    if param_space is None:
+        raise Exception('No parameters defined for layer %s' % layer.layer_type)
     param_space.update(layer.parameters)
     layer.parameters = {
         name: random_initial_param_value(param)
