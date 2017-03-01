@@ -117,9 +117,8 @@ class ModelTrainer(object):
                 model = load_keras_model(model_filename)
             return model, history, (time() - start)
         except Exception as ex:
-            if self.debug:
-                logging.error(ex)
-                logging.error(traceback.format_exc())
+            logging.debug(ex)
+            logging.debug(traceback.format_exc())
         try:
             from keras import backend
             backend.clear_session()
