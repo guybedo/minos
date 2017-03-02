@@ -127,7 +127,7 @@ class DesignTest(unittest.TestCase):
             test_batch_iterator=None,
             environment=None)
         layer_types = ['Dropout']
-        experiment.parameters.block_layer_types(string_param(layer_types))
+        experiment.parameters.layer_types(string_param(layer_types))
         for _ in range(10):
             blueprint = create_random_blueprint(experiment)
             self.assertIsNotNone(blueprint, 'Should have created a blueprint')

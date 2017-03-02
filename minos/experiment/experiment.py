@@ -216,7 +216,7 @@ class ExperimentParameters(object):
     def _load_custom_definitions(self):
         for name, definition in get_custom_layers().items():
             self.layer_parameter(name, definition[1])
-            self.add_block_layer_type(name)
+            self.add_layer_type(name, definition[2])
 
         for name in get_custom_activations().keys():
             self.add_activation(name)
@@ -288,20 +288,23 @@ class ExperimentParameters(object):
                 if 'activation' == param_name and isinstance(param_value, Parameter):
                     param_value.values.append(name)
 
-    def get_block_layer_types(self):
-        param = self.get_layout_parameter('block.layer_type')
+    def get_layer_types(self):
+        param = self.get_layout_parameter('layer.type')
         if isinstance(param, list):
             return param
         elif isinstance(param, str):
             return [param]
-        return self.get_layout_parameter('block.layer_type').values
+        return self.get_layout_parameter('layer.type').values
 
-    def block_layer_types(self, layer_types):
-        self.layout_parameter('block.layer_type', layer_types)
+    def layer_types(self, layer_types):
+        self.layout_parameter('layer.type', layer_types)
 
-    def add_block_layer_type(self, layer_type):
-        layer_type_param = self.get_layout_parameter('block.layer_type')
+    def add_layer_type(self, layer_type, stackable=False):
+        layer_type_param = self.get_layout_parameter('layer.type')
         layer_type_param.values = list(set(layer_type_param.values + [layer_type]))
+        if stackable:
+            layer_stackable_param = self.get_layout_parameter('layer.stackable')
+            layer_stackable_param.values = list(set(layer_stackable_param.values + [layer_type]))
 
     def get_layer_parameter(self, name):
         return self.get_parameter('layers', name)

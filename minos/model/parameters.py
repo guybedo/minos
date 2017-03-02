@@ -22,8 +22,10 @@ reference_parameters = {
                 'concat',
                 'random+concat',
                 'concat+random'], default='concat'),
-            'input_size': float_param(default=1.),
-            'layer_type': string_param(['Dense', 'Dropout', 'BatchNormalization'])}
+            'input_size': float_param(default=1.)},
+        'layer': {
+            'type': string_param(['Dense', 'Dropout', 'BatchNormalization']),
+            'stackable': string_param([])}
     },
     'layers': {
         'Dense': {
@@ -219,8 +221,8 @@ def get_custom_activation(name):
     return custom_activations.get(name, None)
 
 
-def register_custom_layer(name, layer, params=None):
-    custom_layers[name] = (layer, params)
+def register_custom_layer(name, layer, params=None, stackable=False):
+    custom_layers[name] = (layer, params, stackable)
 
 
 def register_custom_activation(name, activation):
