@@ -88,7 +88,7 @@ def float_param(lo=0., hi=1., default=None, values=None, optional=False):
         optional=optional)
 
 
-def int_param(lo=0, hi=100, default=1, values=None, optional=False):
+def int_param(lo=0, hi=100, default=None, values=None, optional=False):
     return Parameter(
         int,
         lo=lo,

@@ -14,7 +14,8 @@ import traceback
 from tensorflow.python.client import device_lib
 
 import tensorflow as tf
-
+import numpy
+from numpy import ndarray
 
 random = Random()
 
@@ -114,11 +115,7 @@ class SimpleBatchIterator(object):
         self.batch_size = batch_size
         self.sample_count = len(X)
         self.samples_per_epoch = self.sample_count
-        self.X, self.y = create_batches(
-            X,
-            y,
-            batch_size,
-            shuffle=True)
+        self.X, self.y = create_batches(X, y, batch_size)
 
     def _transform_data(self, X, y):
         if self.X_transform:
@@ -133,6 +130,7 @@ class SimpleBatchIterator(object):
     def __next__(self):
         try:
             if self.index >= len(self.X):
+                shuffle_batch(self.X, self.y)
                 if self.autorestart or self.autoloop:
                     self.index = 0
                 if self.autorestart or not self.autoloop:
@@ -140,6 +138,7 @@ class SimpleBatchIterator(object):
             X, y = self._transform_data(
                 self.X[self.index],
                 self.y[self.index])
+            shuffle_batch(X, y)
             self.index += 1
             return X, y
         except Exception as ex:
@@ -151,15 +150,13 @@ class SimpleBatchIterator(object):
             raise ex
 
 
-def create_batches(X, y, batch_size, shuffle=True):
+def create_batches(X, y, batch_size):
     X = [
         X[i:i + batch_size]
         for i in range(0, len(X), batch_size)]
     y = [
         y[i:i + batch_size]
         for i in range(0, len(y), batch_size)]
-    if shuffle:
-        shuffle_batch(X, y)
     return X, y
 
 
@@ -170,12 +167,17 @@ def shuffle_batches(X_batches, y_batches):
 
 def shuffle_batch(X, y):
     for i in range(len(X)):
-        swap_idx = random.randint(i, len(X) - 1)
+        swap_idx = random.randint(0, i)
         swap(X, i, swap_idx)
         swap(y, i, swap_idx)
 
 
 def swap(values, idx1, idx2):
-    swap = values[idx2]
-    values[idx2] = values[idx1]
-    values[idx1] = swap
+    if isinstance(values, ndarray):
+        swap = numpy.copy(values[idx2])
+        values[idx2] = numpy.copy(values[idx1])
+        values[idx1] = swap
+    else:
+        swap = values[idx2]
+        values[idx2] = values[idx1]
+        values[idx1] = swap

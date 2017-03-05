@@ -105,11 +105,27 @@ def _random_layout_row(layout, row_idx,
         for _ in range(blocks)])
 
 
+def _is_multiple_block_layouts_defined(layout):
+    if not layout.block:
+        return False
+    if not all(isinstance(e, list) for e in layout.block):
+        return False
+    for element in layout.block:
+        for layer in element:
+            if not isinstance(layer, str)\
+                    and not isinstance(layer, tuple):
+                return False
+    return True
+
+
 def _instantiate_layout_block(layout, row_idx, experiment_parameters, init_layer_parameters=False):
+    block_layout = layout.block
+    if _is_multiple_block_layouts_defined(layout):
+        block_layout = random_list_element(layout.block)
     block = Block()
     _setup_block_input(layout, row_idx, block, experiment_parameters)
     block.layers = _create_template_layers(
-        layout.block,
+        block_layout,
         experiment_parameters,
         init_layer_parameters=init_layer_parameters)
     return block
@@ -210,7 +226,7 @@ def _create_template_layers(template, experiment_parameters, init_layer_paramete
     return layers
 
 
-def is_allowed_block_layer(layers, new_layer):
+def is_allowed_block_layer(layers, new_layer, parameters):
     previous_layer_type = None
     if len(layers) > 0:
         if isinstance(layers[-1], Layer):
@@ -221,14 +237,16 @@ def is_allowed_block_layer(layers, new_layer):
             previous_layer_type = layers[-1]
     if new_layer == 'BatchNormalization':
         return previous_layer_type == 'Dense'
-    return new_layer != previous_layer_type
+    stackable_layers = parameters.get_layout_parameter('layer.stackable')
+    is_stackable = stackable_layers and new_layer in stackable_layers.values
+    return is_stackable or new_layer != previous_layer_type
 
 
 def get_allowed_new_block_layers(layers, parameters):
     return [
         new_layer
-        for new_layer in parameters.get_block_layer_types()
-        if is_allowed_block_layer(layers, new_layer)]
+        for new_layer in parameters.get_layer_types()
+        if is_allowed_block_layer(layers, new_layer, parameters)]
 
 
 def mutate_blueprint(blueprint, parameters,
