@@ -14,7 +14,8 @@ import traceback
 from tensorflow.python.client import device_lib
 
 import tensorflow as tf
-
+import numpy
+from numpy import ndarray
 
 random = Random()
 
@@ -172,6 +173,11 @@ def shuffle_batch(X, y):
 
 
 def swap(values, idx1, idx2):
-    swap = values[idx2]
-    values[idx2] = values[idx1]
-    values[idx1] = swap
+    if isinstance(values, ndarray):
+        swap = numpy.copy(values[idx2])
+        values[idx2] = numpy.copy(values[idx1])
+        values[idx1] = swap
+    else:
+        swap = values[idx2]
+        values[idx2] = values[idx1]
+        values[idx1] = swap
