@@ -105,11 +105,27 @@ def _random_layout_row(layout, row_idx,
         for _ in range(blocks)])
 
 
+def _is_multiple_block_layouts_defined(layout):
+    if not layout.block:
+        return False
+    if not all(isinstance(e, list) for e in layout.block):
+        return False
+    for element in layout.block:
+        for layer in element:
+            if not isinstance(layer, str)\
+                    and not isinstance(layer, tuple):
+                return False
+    return True
+
+
 def _instantiate_layout_block(layout, row_idx, experiment_parameters, init_layer_parameters=False):
+    block_layout = layout.block
+    if _is_multiple_block_layouts_defined(layout):
+        block_layout = random_list_element(layout.block)
     block = Block()
     _setup_block_input(layout, row_idx, block, experiment_parameters)
     block.layers = _create_template_layers(
-        layout.block,
+        block_layout,
         experiment_parameters,
         init_layer_parameters=init_layer_parameters)
     return block
