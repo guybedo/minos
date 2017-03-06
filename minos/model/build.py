@@ -14,7 +14,8 @@ from keras.layers.core import Dense
 from keras.regularizers import L1L2Regularizer
 
 from minos.model.parameters import is_custom_activation, get_custom_activation,\
-    is_custom_layer, get_custom_layers, get_custom_layer
+    is_custom_layer, get_custom_layer
+from minos.train.utils import cpu_device, is_gpu_device, get_logical_device
 
 
 class ModelBuilder(object):
@@ -33,8 +34,15 @@ class ModelBuilder(object):
 
 
 def _build_model(blueprint, device):
+    if isinstance(device, list):
+        return _build_multi_device_model(blueprint, device)
+    else:
+        return _build_single_device_model(blueprint, device)
+
+
+def _build_single_device_model(blueprint, device):
     import tensorflow as tf
-    with tf.device(device):
+    with tf.device(get_logical_device(device)):
         inputs = Input(shape=(blueprint.layout.input_size,))
         row_input = inputs
         for row in blueprint.layout.rows:
@@ -44,6 +52,24 @@ def _build_model(blueprint, device):
             blueprint.layout.output_size,
             activation=blueprint.layout.output_activation)(final_layer_input)
         return Model(input=inputs, output=predictions)
+
+
+def _build_multi_device_model(blueprint, devices):
+    import tensorflow as tf
+    model = _build_single_device_model(blueprint, cpu_device())
+    gpu_devices = [d for d in devices if is_gpu_device(d)]
+    inputs = tf.unstack(model.inputs)
+    device_batch_size = len(inputs) // len(gpu_devices)
+    inputs = [
+        tf.stack(inputs[i:i + device_batch_size], axis=0)
+        for i, _ in enumerate(gpu_devices)]
+    outputs = []
+    for i, device in enumerate(gpu_devices):
+        with tf.device(device):
+            outputs.append(model(inputs[i]))
+    with tf.device(cpu_device()):
+        output = tf.concat(outputs, 0)
+        return Model(input=model.inputs, output=output)
 
 
 def _build_row_model(inputs, row):

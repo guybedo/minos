@@ -15,7 +15,8 @@ from keras.callbacks import ModelCheckpoint
 from minos.experiment.training import EpochStoppingCondition,\
     AccuracyDecreaseStoppingCondition, AccuracyDecreaseStoppingConditionWrapper,\
     get_associated_validation_metric
-from minos.train.utils import is_gpu_device, get_device_idx, get_logical_device
+from minos.train.utils import is_gpu_device, get_device_idx, get_logical_device,\
+    is_cpu_device
 from minos.utils import disable_sysout, load_keras_model
 
 
@@ -96,8 +97,7 @@ class ModelTrainer(object):
         try:
             model = self.model_builder.build(
                 blueprint,
-                get_logical_device(device))
-
+                device)
             self._setup_tf(device)
             nb_epoch, callbacks = self._get_stopping_parameters(blueprint)
             if save_best_model:
@@ -150,13 +150,13 @@ class ModelTrainer(object):
     def _setup_tf(self, device):
         import tensorflow as tf
         config = tf.ConfigProto()
-        if is_gpu_device(device):
+        if hasattr(config, 'gpu_options'):
             config.allow_soft_placement = True
+            config.gpu_options.allow_growth = True
+        if is_gpu_device(device):
             config.gpu_options.visible_device_list = str(
                 get_device_idx(device))
-            config.gpu_options.allow_growth = True
-        elif hasattr(config, 'gpu_options'):
-            config.gpu_options.allow_growth = True
+        elif is_cpu_device(device):
             config.gpu_options.visible_device_list = ''
         from keras import backend
         backend.set_session(tf.Session(config=config))
