@@ -62,10 +62,8 @@ def train_multi_gpu(max_words = 1000, batch_size=32):
         print('Final training score %r after %d epoch' % (score, epoch))
         
         evaluation = model.evaluate_generator(
-            batch_iterator,
-            batch_iterator.samples_per_epoch,
-            validation_data=test_batch_iterator,
-            nb_val_samples=test_batch_iterator.sample_count)
+            test_batch_iterator,
+            test_batch_iterator.sample_count)
         print('Final evaluation score %r' % evaluation)
     
 def main():
