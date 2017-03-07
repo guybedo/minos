@@ -10,7 +10,7 @@ import traceback
 import keras
 from keras.engine.topology import Input, Merge, merge
 from keras.engine.training import Model
-from keras.layers.core import Dense
+from keras.layers.core import Dense, Lambda
 from keras.regularizers import L1L2Regularizer
 
 from minos.model.parameters import is_custom_activation, get_custom_activation,\
@@ -68,14 +68,24 @@ def _build_multi_gpu_model(blueprint, devices):
     model = _build_single_device_model(blueprint, cpu_device())
     gpu_devices = [d for d in devices if is_gpu_device(d)]
     gpu_count = len(gpu_devices)
-    inputs = tf.reshape(
-        model.inputs[0], 
-        [gpu_count, -1, blueprint.layout.input_size])
-    inputs = tf.unstack(inputs)
+    
+    def get_input(data, idx, parts):
+        shape = tf.shape(data)
+        size = tf.concat(0, [ shape[:1] // parts, shape[1:] ])
+        stride = tf.concat(0, [ shape[:1] // parts, shape[1:]*0 ])
+        start = stride * idx
+        return tf.slice(data, start, size)
+    
     outputs = []
     for i, device in enumerate(gpu_devices):
         with tf.device(device):
-            outputs.append(model(inputs[i]))
+            x = model.inputs[0]
+            input_shape = tuple(x.get_shape().as_list())[1:]
+            model_input = Lambda(
+                get_input, 
+                output_shape=input_shape, 
+                arguments={'idx':i,'parts':gpu_count})(x)
+            outputs.append(model(model_input))
     with tf.device(cpu_device()):
         output = merge(outputs, mode='concat', concat_axis=0)
         return MultiGpuModel(
