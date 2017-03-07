@@ -50,7 +50,7 @@ def get_device_idx(device):
     return device.split(':')[1]
 
 
-def setup_tf_session(self, device):
+def setup_tf_session(device):
     import tensorflow as tf
     config = tf.ConfigProto()
     if hasattr(config, 'gpu_options'):
