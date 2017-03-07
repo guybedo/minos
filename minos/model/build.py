@@ -54,7 +54,7 @@ def _build_single_device_model(blueprint, device):
         return Model(input=inputs, output=predictions)
 
 
-def MultiGpuModel(Model):
+class MultiGpuModel(Model):
     
     def __init__(self, model, model_input, model_output):
         super().__init__(input=model_input, output=model_output)
