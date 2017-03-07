@@ -11,13 +11,15 @@ import sys
 from keras.models import load_model
 
 from minos.model.parameters import get_custom_layers, get_custom_activations
+from minos.tf_utils import setup_tf_session
 
 
 def disable_sysout():
     sys.stdout.write = lambda s: s
 
 
-def load_keras_model(filename):
+def load_keras_model(filename, device=None):
+    setup_tf_session(device)
     custom_objects = dict()
     custom_objects.update(get_custom_activations())
     custom_objects.update({

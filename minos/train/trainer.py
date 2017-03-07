@@ -5,17 +5,17 @@ Created on Feb 12, 2017
 '''
 import logging
 from multiprocessing import Queue, Process
-import numpy
 from threading import Thread
 from time import time
 import traceback
 
 from keras.callbacks import ModelCheckpoint
+import numpy
 
 from minos.experiment.training import EpochStoppingCondition,\
     AccuracyDecreaseStoppingCondition, AccuracyDecreaseStoppingConditionWrapper,\
     get_associated_validation_metric
-from minos.train.utils import is_gpu_device, get_device_idx, is_cpu_device
+from minos.tf_utils import setup_tf_session
 from minos.utils import disable_sysout, load_keras_model
 
 
@@ -97,7 +97,7 @@ class ModelTrainer(object):
             model = self.model_builder.build(
                 blueprint,
                 device)
-            self._setup_tf(device)
+            setup_tf_session(device)
             nb_epoch, callbacks = self._get_stopping_parameters(blueprint)
             if save_best_model:
                 callbacks.append(self._get_model_save_callback(
@@ -145,20 +145,6 @@ class ModelTrainer(object):
             stopping_callbacks = [
                 AccuracyDecreaseStoppingConditionWrapper(blueprint.training.stopping)]
         return nb_epoch, stopping_callbacks
-
-    def _setup_tf(self, device):
-        import tensorflow as tf
-        config = tf.ConfigProto()
-        if hasattr(config, 'gpu_options'):
-            config.allow_soft_placement = True
-            config.gpu_options.allow_growth = True
-        if is_gpu_device(device):
-            config.gpu_options.visible_device_list = str(
-                get_device_idx(device))
-        elif is_cpu_device(device):
-            config.gpu_options.visible_device_list = ''
-        from keras import backend
-        backend.set_session(tf.Session(config=config))
 
 
 def model_training_worker(batch_iterator, test_batch_iterator,

@@ -4,59 +4,16 @@ Created on Feb 12, 2017
 @author: julien
 '''
 import logging
-import numpy
 from os import path, makedirs
 from os.path import join
 from posix import access, W_OK
 from random import Random
 import traceback
 
-from tensorflow.python.client import device_lib
-
-import tensorflow as tf
 import numpy
 from numpy import ndarray
-
+import tensorflow as tf
 random = Random()
-
-
-def cpu_device():
-    return '/cpu:0'
-
-
-def get_available_gpus():
-    try:
-        local_device_protos = device_lib.list_local_devices()
-        return [x.name for x in local_device_protos if x.device_type == 'GPU']
-    except Exception as ex:
-        logging.error(
-            'Error while trying to list available GPUs: %s' % str(ex))
-        return list()
-
-
-def default_device():
-    gpus = get_available_gpus()
-    if len(gpus) > 0:
-        return gpus[1]
-    return cpu_device()
-
-
-def get_logical_device(physical_device):
-    if is_gpu_device(physical_device):
-        return '/gpu:0'
-    return physical_device
-
-
-def is_cpu_device(device):
-    return isinstance(device, str) and device.startswith('/cpu')
-
-
-def is_gpu_device(device):
-    return isinstance(device, str) and device.startswith('/gpu')
-
-
-def get_device_idx(device):
-    return device.split(':')[1]
 
 
 class Environment(object):
