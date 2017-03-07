@@ -63,9 +63,11 @@ def train_multi_gpu(max_words = 1000, batch_size=32):
         score = history.history[metric][epoch]
         print('Final training score %r after %d epoch' % (score, epoch))
         
-        y_true = test_batch_iterator.y[0]
-        y_pred = model.predict(test_batch_iterator.X[0])
-        evaluation = numpy.mean(y_true==y_pred)
+        test_size = 10
+        y_true = test_batch_iterator.y[0][:test_size]
+        y_pred = model.predict(test_batch_iterator.X[0][:test_size])
+        print('Predictions (true, pred) %r' % list(zip(y_true.tolist(), y_pred.tolist())))
+        evaluation = numpy.mean(numpy.argmax(y_true)==numpy.argmax(y_pred))
         print('Final evaluation score %f' % evaluation)
     
 def main():
