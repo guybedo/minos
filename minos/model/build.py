@@ -35,7 +35,7 @@ class ModelBuilder(object):
 
 def _build_model(blueprint, device):
     if isinstance(device, list):
-        return _build_multi_device_model(blueprint, device)
+        return _build_multi_gpu_model(blueprint, device)
     else:
         return _build_single_device_model(blueprint, device)
 
@@ -54,12 +54,23 @@ def _build_single_device_model(blueprint, device):
         return Model(input=inputs, output=predictions)
 
 
-def _build_multi_device_model(blueprint, devices):
+def MultiGpuModel(Model):
+    
+    def __init__(self, model, model_input, model_output):
+        super().__init__(input=model_input, output=model_output)
+        self.model = model
+        
+    def save(self, filepath, overwrite=True):
+        self.model.save(filepath=filepath, overwrite=overwrite)
+    
+def _build_multi_gpu_model(blueprint, devices):
     import tensorflow as tf
     model = _build_single_device_model(blueprint, cpu_device())
     gpu_devices = [d for d in devices if is_gpu_device(d)]
     gpu_count = len(gpu_devices)
-    inputs = tf.reshape(model.inputs, [gpu_count, -1, blueprint.layout.input_size])
+    inputs = tf.reshape(
+        model.inputs[0], 
+        [gpu_count, -1, blueprint.layout.input_size])
     inputs = tf.unstack(inputs)
     outputs = []
     for i, device in enumerate(gpu_devices):
@@ -67,7 +78,10 @@ def _build_multi_device_model(blueprint, devices):
             outputs.append(model(inputs[i]))
     with tf.device(cpu_device()):
         output = tf.concat(outputs, 0)
-        return Model(input=model.inputs, output=output)
+        return MultiGpuModel(
+            model, 
+            model_input=model.inputs, 
+            model_output=output)
 
 
 def _build_row_model(inputs, row):
