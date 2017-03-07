@@ -71,8 +71,8 @@ def _build_multi_gpu_model(blueprint, devices):
     
     def get_input(data, idx, parts):
         shape = tf.shape(data)
-        size = tf.concat(0, [ shape[:1] // parts, shape[1:] ])
-        stride = tf.concat(0, [ shape[:1] // parts, shape[1:]*0 ])
+        size = tf.concat([ shape[:1] // parts, shape[1:] ], 0)
+        stride = tf.concat([ shape[:1] // parts, shape[1:]*0 ], 0)
         start = stride * idx
         return tf.slice(data, start, size)
     
