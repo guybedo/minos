@@ -7,7 +7,6 @@ import numpy
 from os.path import join
 import tempfile
 
-from keras.metrics import categorical_accuracy
 
 from examples.ga.dataset import get_reuters_dataset
 from minos.experiment.experiment import Experiment, ExperimentParameters
