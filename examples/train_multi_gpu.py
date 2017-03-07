@@ -65,7 +65,7 @@ def train_multi_gpu(max_words = 1000, batch_size=32):
         
         y_true = test_batch_iterator.y[0]
         y_pred = model.predict(test_batch_iterator.X[0])
-        evaluation = categorical_accuracy(y_true, y_pred)
+        evaluation = numpy.mean(y_true==y_pred)
         print('Final evaluation score %f' % evaluation)
     
 def main():
