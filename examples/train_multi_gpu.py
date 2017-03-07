@@ -14,6 +14,7 @@ from minos.experiment.training import Training, AccuracyDecreaseStoppingConditio
 from minos.model.design import create_random_blueprint
 from minos.model.model import Objective, Optimizer, Metric, Layout
 from minos.train.trainer import ModelTrainer
+from minos.utils import setup_console_logging
 import numpy as np
 
 
@@ -60,6 +61,7 @@ def train_multi_gpu(max_words = 1000, batch_size=32):
         print('Final score %r after %d epoch' % (score, epoch))
     
 def main():
+    setup_console_logging('DEBUG')
     train_multi_gpu()
 
 if __name__ == '__main__':
