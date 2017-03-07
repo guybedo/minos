@@ -59,7 +59,7 @@ def _build_multi_device_model(blueprint, devices):
     model = _build_single_device_model(blueprint, cpu_device())
     gpu_devices = [d for d in devices if is_gpu_device(d)]
     gpu_count = len(gpu_devices)
-    inputs = tf.reshape(model.inputs, [gpu_count, -1, model.inputs.get_shape()[1]])
+    inputs = tf.reshape(model.inputs, [gpu_count, -1, blueprint.layout.input_size])
     inputs = tf.unstack(inputs)
     outputs = []
     for i, device in enumerate(gpu_devices):
