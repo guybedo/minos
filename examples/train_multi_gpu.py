@@ -48,7 +48,7 @@ def train_multi_gpu(max_words = 1000, batch_size=32):
     blueprint = create_random_blueprint(experiment)
     devices = ['/gpu:0', '/gpu:1']
     trainer = ModelTrainer(batch_iterator, test_batch_iterator)
-    with tempfile.TemporaryDirectory as tmp_dir:
+    with tempfile.TemporaryDirectory() as tmp_dir:
         _model, history, _duration = trainer.train(
             blueprint,
             devices,
