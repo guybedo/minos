@@ -51,7 +51,7 @@ def train_multi_gpu(max_words = 1000, batch_size=32):
     devices = ['/gpu:0', '/gpu:1']
     trainer = ModelTrainer(batch_iterator, test_batch_iterator)
     with tempfile.TemporaryDirectory() as tmp_dir:
-        _model, history, _duration = trainer.train(
+        model, history, _duration = trainer.train(
             blueprint,
             devices,
             save_best_model=True,
@@ -59,7 +59,14 @@ def train_multi_gpu(max_words = 1000, batch_size=32):
         metric = get_associated_validation_metric(blueprint.training.metric.metric)
         epoch = numpy.argmax(history.history[metric])
         score = history.history[metric][epoch]
-        print('Final score %r after %d epoch' % (score, epoch))
+        print('Final training score %r after %d epoch' % (score, epoch))
+        
+        evaluation = model.evaluate_generator(
+            batch_iterator,
+            batch_iterator.samples_per_epoch,
+            validation_data=test_batch_iterator,
+            nb_val_samples=test_batch_iterator.sample_count)
+        print('Final evaluation score %r' % evaluation)
     
 def main():
     setup_console_logging('DEBUG')

@@ -15,8 +15,7 @@ from keras.callbacks import ModelCheckpoint
 from minos.experiment.training import EpochStoppingCondition,\
     AccuracyDecreaseStoppingCondition, AccuracyDecreaseStoppingConditionWrapper,\
     get_associated_validation_metric
-from minos.train.utils import is_gpu_device, get_device_idx, get_logical_device,\
-    is_cpu_device
+from minos.train.utils import is_gpu_device, get_device_idx, is_cpu_device
 from minos.utils import disable_sysout, load_keras_model
 
 
