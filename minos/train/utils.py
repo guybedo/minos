@@ -47,8 +47,12 @@ def get_logical_device(physical_device):
     return physical_device
 
 
+def is_cpu_device(device):
+    return isinstance(device, str) and device.startswith('/cpu')
+
+
 def is_gpu_device(device):
-    return device.startswith('/gpu')
+    return isinstance(device, str) and device.startswith('/gpu')
 
 
 def get_device_idx(device):

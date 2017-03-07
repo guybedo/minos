@@ -55,3 +55,30 @@ def setup_logging(filename, level='INFO', resume=False):
         }
     }
     dictConfigClass(logging_configuration).configure()
+    
+def setup_console_logging(level='INFO'):
+    print('Logging to console, level=%s' % level)
+    logging_configuration = {
+        'version': 1,
+        'formatters': {
+            'standard': {
+                'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+                'datefmt': '%Y-%m-%d %H:%M:%S'
+            },
+        },
+        'handlers': {
+            'console': {
+                'level': level,
+                'class': 'logging.StreamHandler',
+                'formatter': 'standard'
+            }
+        },
+        'loggers': {
+            '': {
+                'handlers': ['console'],
+                'level': level,
+                'propagate': True
+            }
+        }
+    }
+    dictConfigClass(logging_configuration).configure()
