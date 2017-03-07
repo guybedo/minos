@@ -42,7 +42,7 @@ def create_experiment(input_size, output_size, batch_size):
         parameters=parameters)
     return experiment
 
-def train_multi_gpu(steps, max_words = 1000, batch_size=32):
+def train_multi_gpu(max_words = 1000, batch_size=32):
     batch_iterator, test_batch_iterator, nb_classes = get_reuters_dataset(batch_size, max_words)
     experiment = create_experiment(max_words, nb_classes, batch_size)
     blueprint = create_random_blueprint(experiment)
