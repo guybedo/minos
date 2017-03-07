@@ -8,7 +8,7 @@ import logging
 import traceback
 
 import keras
-from keras.engine.topology import Input, Merge
+from keras.engine.topology import Input, Merge, merge
 from keras.engine.training import Model
 from keras.layers.core import Dense
 from keras.regularizers import L1L2Regularizer
@@ -77,7 +77,7 @@ def _build_multi_gpu_model(blueprint, devices):
         with tf.device(device):
             outputs.append(model(inputs[i]))
     with tf.device(cpu_device()):
-        output = tf.concat(outputs, 0)
+        output = merge(outputs, mode='concat', concat_axis=0)
         return MultiGpuModel(
             model, 
             model_input=model.inputs, 
