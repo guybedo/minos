@@ -23,14 +23,15 @@ np.random.seed(1337)
 
 def create_experiment(input_size, output_size, batch_size):
     training = Training(
-        Objective('categorical_crossentropy'),
-        Optimizer(optimizer='Adam'),
-        Metric('categorical_accuracy'),
-        AccuracyDecreaseStoppingCondition(
-        min_epoch=2,
-        max_epoch=10,
-        noprogress_count=5),
-        batch_size)
+        objective=Objective('categorical_crossentropy'),
+        optimizer=Optimizer(optimizer='Adam'),
+        metric=Metric('categorical_accuracy'),
+        stopping=AccuracyDecreaseStoppingCondition(
+            metric='categorical_accuracy',
+            min_epoch=5,
+            max_epoch=25,
+            noprogress_count=5),
+        batch_size=batch_size)
     parameters = ExperimentParameters(use_default_values=True)
     layout = Layout(
         input_size=input_size,
