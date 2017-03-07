@@ -7,6 +7,8 @@ import numpy
 from os.path import join
 import tempfile
 
+from keras.metrics import categorical_accuracy
+
 from examples.ga.dataset import get_reuters_dataset
 from minos.experiment.experiment import Experiment, ExperimentParameters
 from minos.experiment.training import Training, AccuracyDecreaseStoppingCondition,\
@@ -61,10 +63,10 @@ def train_multi_gpu(max_words = 1000, batch_size=32):
         score = history.history[metric][epoch]
         print('Final training score %r after %d epoch' % (score, epoch))
         
-        evaluation = model.evaluate_generator(
-            test_batch_iterator,
-            test_batch_iterator.sample_count)
-        print('Final evaluation score %r' % evaluation)
+        y_true = test_batch_iterator.y[0]
+        y_pred = model.predict(test_batch_iterator.X[0])
+        evaluation = categorical_accuracy(y_true, y_pred)
+        print('Final evaluation score %f' % evaluation)
     
 def main():
     setup_console_logging('DEBUG')
