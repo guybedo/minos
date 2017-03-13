@@ -8,12 +8,14 @@ from keras.callbacks import EarlyStopping
 
 class Training(object):
 
-    def __init__(self, objective, optimizer, metric, stopping, batch_size):
+    def __init__(self, objective, optimizer, metric,
+                 stopping, batch_size, class_weight=None):
         self.objective = objective
         self.optimizer = optimizer
         self.metric = metric
         self.stopping = stopping
         self.batch_size = batch_size
+        self.class_weight = class_weight
 
     def todict(self):
         return {
@@ -21,7 +23,8 @@ class Training(object):
             'optimizer': self.optimizer.todict(),
             'metric': self.metric.todict(),
             'stopping': self.stopping.todict(),
-            'batch_size': self.batch_size}
+            'batch_size': self.batch_size,
+            'class_weight': self.class_weight}
 
 
 class EpochStoppingCondition(object):

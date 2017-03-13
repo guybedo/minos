@@ -97,6 +97,7 @@ class ModelTrainer(object):
             model = self.model_builder.build(
                 blueprint,
                 device)
+            class_weight = class_weight or blueprint.training.class_weight
             setup_tf_session(device)
             nb_epoch, callbacks = self._get_stopping_parameters(blueprint)
             if save_best_model:
