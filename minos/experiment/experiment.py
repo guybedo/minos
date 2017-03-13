@@ -331,6 +331,19 @@ class Blueprint(object):
         self.training = training
         self.score = score
 
+    def scale_layers_size(self, scale):
+        for layer in self.layout.get_layers():
+            output_dim = layer.parameters.get('output_dim', None)
+            if not output_dim:
+                return
+            current_size = layer.parameters['output_dim']
+            new_size = current_size * scale
+            logging.debug(
+                'Scaling output dim: %d=>%d',
+                current_size,
+                new_size)
+            layer.parameters['output_dim'] = new_size
+
     def todict(self):
         return {
             'layout': self.layout.todict(),

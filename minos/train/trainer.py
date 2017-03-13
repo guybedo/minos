@@ -91,6 +91,7 @@ class ModelTrainer(object):
         self.batch_iterator = batch_iterator
         self.test_batch_iterator = test_batch_iterator
 
+
     def train(self, blueprint, device,
               save_best_model=False, model_filename=None):
         try:
