@@ -91,9 +91,8 @@ class ModelTrainer(object):
         self.batch_iterator = batch_iterator
         self.test_batch_iterator = test_batch_iterator
 
-
     def train(self, blueprint, device,
-              save_best_model=False, model_filename=None):
+              save_best_model=False, model_filename=None, class_weight=None):
         try:
             model = self.model_builder.build(
                 blueprint,
@@ -111,7 +110,8 @@ class ModelTrainer(object):
                 nb_epoch,
                 callbacks=callbacks,
                 validation_data=self.test_batch_iterator,
-                nb_val_samples=self.test_batch_iterator.sample_count)
+                nb_val_samples=self.test_batch_iterator.sample_count,
+                class_weight=class_weight)
             if save_best_model:
                 del model
                 model = load_keras_model(model_filename)
