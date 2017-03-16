@@ -6,21 +6,16 @@ Created on Feb 15, 2017
 from copy import deepcopy
 import unittest
 
-from keras import activations, backend
-from keras.engine.topology import Layer
 from keras.layers.core import Dense
 
 from minos.experiment.experiment import Experiment, ExperimentParameters,\
     check_experiment_parameters
 from minos.experiment.training import Training, EpochStoppingCondition
-from minos.model.build import ModelBuilder
-from minos.model.design import create_random_blueprint, mutate_blueprint,\
-    mix_blueprints
+from minos.model.design import create_random_blueprint, mutate_blueprint
 from minos.model.model import Layout, Objective, Metric
-from minos.model.parameter import int_param, string_param, float_param
+from minos.model.parameter import int_param, float_param
 from minos.model.parameters import register_custom_activation,\
     register_custom_layer, reference_parameters
-from minos.train.utils import cpu_device
 
 
 class MutationTest(unittest.TestCase):

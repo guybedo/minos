@@ -3,35 +3,26 @@ Created on Feb 18, 2017
 
 @author: julien
 '''
+from genericpath import isfile
 from os.path import join
 import tempfile
 import unittest
 
 from minos.experiment.experiment import ExperimentParameters, Experiment
 from minos.experiment.training import Training, EpochStoppingCondition
-from minos.model.build import ModelBuilder
 from minos.model.design import create_random_blueprint
 from minos.model.model import Layout, Objective, Optimizer, Metric
-from minos.model.parameter import int_param
-from minos.model.parameters import register_custom_activation,\
-    register_custom_layer
-from minos.tf_utils import default_device
+from minos.tf_utils import cpu_device
+from minos.train.trainer import ModelTrainer
 from minos.train.utils import CpuEnvironment
-from minos.utils import disable_sysout, load_keras_model
-from tests.fixtures import get_reuters_dataset, CustomLayer
+from minos.utils import disable_sysout
+from tests.fixtures import get_reuters_dataset
 
 
-class ModelSaveTest(unittest.TestCase):
+class TrainTest(unittest.TestCase):
 
-    def test_save(self):
+    def test_model_trainer(self):
         disable_sysout()
-
-        def custom_activation(x):
-            return x
-
-        register_custom_activation('custom_activation', custom_activation)
-        register_custom_layer('custom_layer', CustomLayer, {'output_dim': int_param(1, 100)})
-
         with tempfile.TemporaryDirectory() as tmp_dir:
             batch_size = 50
             batch_iterator, test_batch_iterator, nb_classes = get_reuters_dataset(batch_size, 1000)
@@ -49,7 +40,6 @@ class ModelSaveTest(unittest.TestCase):
             experiment_parameters.layout_parameter('rows', 1)
             experiment_parameters.layout_parameter('blocks', 1)
             experiment_parameters.layout_parameter('layers', 1)
-            experiment_parameters.layout_parameter('block.layer_type', 'custom_layer')
             experiment = Experiment(
                 'test__reuters_experiment',
                 layout,
@@ -60,17 +50,19 @@ class ModelSaveTest(unittest.TestCase):
                 parameters=experiment_parameters)
 
             blueprint = create_random_blueprint(experiment)
-            model = ModelBuilder().build(blueprint, default_device())
-            model.fit_generator(
-                generator=batch_iterator,
-                samples_per_epoch=batch_iterator.samples_per_epoch,
-                nb_epoch=10,
-                validation_data=test_batch_iterator,
-                nb_val_samples=test_batch_iterator.sample_count)
-            filepath = join(tmp_dir, 'model')
-            model.save(filepath)
-            model = load_keras_model(filepath)
-            self.assertIsNotNone(model, 'Should have loaded the model')
+            trainer = ModelTrainer(batch_iterator, test_batch_iterator)
+            model_filename = join(tmp_dir, 'model')
+            model, history, _duration = trainer.train(
+                blueprint,
+                [cpu_device(), cpu_device()],
+                save_best_model=True,
+                model_filename=model_filename)
+            model.predict(test_batch_iterator.X[0], len(test_batch_iterator.X[0]))
+            self.assertIsNotNone(
+                model,
+                'should have fit the model')
+            self.assertTrue(isfile(model_filename), 'Should have saved the model')
+            self.assertIsNotNone(history, 'Should have the training history')
 
 
 if __name__ == "__main__":

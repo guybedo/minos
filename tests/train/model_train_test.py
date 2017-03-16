@@ -15,8 +15,9 @@ from minos.experiment.training import Training, EpochStoppingCondition,\
 from minos.model.build import ModelBuilder
 from minos.model.design import create_random_blueprint
 from minos.model.model import Layout, Objective, Optimizer, Metric
+from minos.tf_utils import default_device, cpu_device
 from minos.train.trainer import ModelTrainer
-from minos.train.utils import default_device, CpuEnvironment, cpu_device
+from minos.train.utils import CpuEnvironment
 from minos.utils import disable_sysout
 from tests.fixtures import get_reuters_dataset
 

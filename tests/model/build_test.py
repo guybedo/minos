@@ -18,7 +18,7 @@ from minos.model.model import Layout, Objective, Metric
 from minos.model.parameter import int_param, string_param, float_param
 from minos.model.parameters import register_custom_activation,\
     register_custom_layer, reference_parameters
-from minos.train.utils import cpu_device
+from minos.tf_utils import cpu_device
 
 
 class BuildTest(unittest.TestCase):
