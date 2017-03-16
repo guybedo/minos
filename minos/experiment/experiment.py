@@ -335,12 +335,11 @@ class Blueprint(object):
         for layer in self.layout.get_layers():
             output_dim = layer.parameters.get('output_dim', None)
             if not output_dim:
-                return
-            current_size = layer.parameters['output_dim']
-            new_size = current_size * scale
+                continue
+            new_size = output_dim * scale
             logging.debug(
                 'Scaling output dim: %d=>%d',
-                current_size,
+                output_dim,
                 new_size)
             layer.parameters['output_dim'] = new_size
 
