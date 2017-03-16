@@ -15,7 +15,7 @@ from keras.regularizers import L1L2Regularizer
 
 from minos.model.parameters import is_custom_activation, get_custom_activation,\
     is_custom_layer, get_custom_layer
-from minos.tf_utils import get_logical_device, cpu_device, is_gpu_device
+from minos.tf_utils import get_logical_device, cpu_device
 
 
 class ModelBuilder(object):

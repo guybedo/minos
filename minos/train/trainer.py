@@ -13,7 +13,7 @@ from keras.callbacks import ModelCheckpoint
 import numpy
 
 from minos.experiment.training import EpochStoppingCondition,\
-    AccuracyDecreaseStoppingCondition, AccuracyDecreaseStoppingConditionWrapper,\
+    AccuracyDecreaseStoppingCondition, StoppingConditionWrapper,\
     get_associated_validation_metric
 from minos.tf_utils import setup_tf_session
 from minos.utils import disable_sysout, load_keras_model
@@ -145,7 +145,7 @@ class ModelTrainer(object):
                 blueprint.training.stopping.min_epoch,
                 blueprint.training.stopping.max_epoch)
             stopping_callbacks = [
-                AccuracyDecreaseStoppingConditionWrapper(blueprint.training.stopping)]
+                StoppingConditionWrapper(blueprint.training.stopping)]
         return nb_epoch, stopping_callbacks
 
 
