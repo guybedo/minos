@@ -21,20 +21,23 @@ def create_random_blueprint(experiment):
     return Blueprint(
         _random_layout(
             experiment.layout,
-            experiment.parameters),
+            experiment.settings,
+            experiment.parameters,
+            mutation_std=experiment.settings.ga['mutation_std']),
         _random_training(experiment))
 
 
 def _random_training(experiment):
     training = deepcopy(experiment.training)
-    if experiment.parameters.is_optimizer_search():
+    if experiment.settings.is_optimizer_search():
         training.optimizer = _random_optimizer(
             training.optimizer,
-            experiment.parameters)
+            experiment.parameters,
+            mutation_std=experiment.settings.ga['mutation_std'])
     return training
 
 
-def _random_optimizer(optimizer, experiment_parameters):
+def _random_optimizer(optimizer, experiment_parameters, mutation_std=0.1):
     ref_parameters = experiment_parameters.get_optimizers_parameters()
     optimizer_id = optimizer.optimizer if optimizer else None
     if not optimizer_id:
@@ -46,19 +49,22 @@ def _random_optimizer(optimizer, experiment_parameters):
     if optimizer:
         param_space.update(optimizer.parameters)
     parameters = {
-        name: random_initial_param_value(param)
+        name: random_initial_param_value(param, mutation_std=mutation_std)
         for name, param in param_space.items()}
     return Optimizer(optimizer_id, parameters)
 
 
-def _random_layout(layout, experiment_parameters):
+def _random_layout(layout, experiment_settings,
+                   experiment_parameters, mutation_std=0.1):
     layout = Layout(
         layout.input_size,
         layout.output_size,
         layout.output_activation,
         layout.block)
-    if experiment_parameters.is_layout_search():
-        rows = random_initial_param_value(experiment_parameters.get_layout_parameter('rows'))
+    if experiment_settings.is_layout_search():
+        rows = random_initial_param_value(
+            experiment_parameters.get_layout_parameter('rows'),
+            mutation_std=mutation_std)
         for row_idx in range(rows):
             layout.rows.append(
                 _random_layout_row(
@@ -72,23 +78,23 @@ def _random_layout(layout, experiment_parameters):
                     layout,
                     0,
                     experiment_parameters)])]
-    if experiment_parameters.is_parameters_search():
-        _set_layout_random_parameters(layout, experiment_parameters)
+    if experiment_settings.is_parameters_search():
+        _set_layout_random_parameters(layout, experiment_parameters, mutation_std)
     return layout
 
 
-def _set_layout_random_parameters(layout, experiment_parameters):
+def _set_layout_random_parameters(layout, experiment_parameters, mutation_std=0.1):
     for layer in layout.get_layers():
-        _set_layer_random_parameters(layer, experiment_parameters)
+        _set_layer_random_parameters(layer, experiment_parameters, mutation_std)
 
 
-def _set_layer_random_parameters(layer, experiment_parameters):
+def _set_layer_random_parameters(layer, experiment_parameters, mutation_std=0.1):
     param_space = deepcopy(experiment_parameters.get_layer_parameters(layer.layer_type))
     if param_space is None:
         raise Exception('No parameters defined for layer %s' % layer.layer_type)
     param_space.update(layer.parameters)
     layer.parameters = {
-        name: random_initial_param_value(param)
+        name: random_initial_param_value(param, mutation_std=mutation_std)
         for name, param in param_space.items()}
     layer.apply_constraints()
 
@@ -250,27 +256,29 @@ def get_allowed_new_block_layers(layers, parameters):
 
 
 def mutate_blueprint(blueprint, parameters,
-                     p_mutate_layout=0.25, p_mutate_param=0.25,
+                     p_mutate_layout=0.25, p_mutate_param=0.25, mutation_std=0.1,
+                     mutate_layout=True, mutate_params=True, mutate_optimizer=True,
                      layout_mutation_count=1, layout_mutables=None, mutate_in_place=True):
     if not mutate_in_place:
         blueprint = deepcopy(blueprint)
-    if parameters.is_layout_search():
-        if rand.random() < p_mutate_layout:
-            _mutate_layout(
-                blueprint.layout,
-                parameters,
-                mutables=layout_mutables,
-                mutation_count=layout_mutation_count)
-    if parameters.is_parameters_search():
+    if mutate_layout and rand.random() < p_mutate_layout:
+        _mutate_layout(
+            blueprint.layout,
+            parameters,
+            mutables=layout_mutables,
+            mutation_count=layout_mutation_count)
+    if mutate_params:
         _mutate_layer_parameters(
             blueprint.layout,
             parameters,
-            p_mutate_param=p_mutate_param)
-    if parameters.is_optimizer_search():
+            p_mutate_param=p_mutate_param,
+            mutation_std=mutation_std)
+    if mutate_optimizer:
         _mutate_optimizer(
             blueprint.training.optimizer,
             parameters,
-            p_mutate_param=p_mutate_param)
+            p_mutate_param=p_mutate_param,
+            mutation_std=mutation_std)
     return blueprint
 
 
@@ -357,82 +365,88 @@ def _mutate_layout_layers(layout, parameters):
                 if i != idx]
 
 
-def _mutate_layer_parameters(layout, parameters, p_mutate_param=0.1):
+def _mutate_layer_parameters(layout, parameters, p_mutate_param=0.1, mutation_std=0.1):
     for row in layout.rows:
         for block in row.blocks:
             for layer in block.layers:
-                _mutate_layer(layer, parameters, p_mutate_param)
+                _mutate_layer(
+                    layer,
+                    parameters,
+                    p_mutate_param,
+                    mutation_std)
 
 
-def _mutate_layer(layer, parameters, p_mutate_param=0.1):
+def _mutate_layer(layer, parameters, p_mutate_param=0.1, mutation_std=0.1):
     param_space = deepcopy(parameters.get_layer_parameters(layer.layer_type))
     for name, value in layer.parameters.items():
         if rand.random() < p_mutate_param:
-            layer.parameters[name] = mutate_param(param_space[name], value)
+            layer.parameters[name] = mutate_param(
+                param_space[name],
+                value,
+                mutation_std)
     layer.apply_constraints()
 
 
-def _mutate_optimizer(optimizer, parameters, p_mutate_param=0.1):
+def _mutate_optimizer(optimizer, parameters,
+                      p_mutate_param=0.1, mutation_std=0.1):
     param_space = deepcopy(parameters.get_optimizer_parameters(optimizer.optimizer))
     for name, value in optimizer.parameters.items():
         if rand.random() < p_mutate_param:
-            optimizer.parameters[name] = mutate_param(param_space[name], value)
+            optimizer.parameters[name] = mutate_param(
+                param_space[name],
+                value,
+                mutation_std)
 
 
-def mix_blueprints(blueprint1, blueprint2, parameters, p_mutate_param=0.05):
-    parents = [blueprint1.layout, blueprint2.layout]
-    layout = _mix_layouts(parents, parameters, p_mutate_param)
-    parents = [blueprint1.training, blueprint2.training]
-    training = _mix_trainings(parents, parameters, p_mutate_param)
-    return Blueprint(layout, training)
-
-
-def _mix_trainings(parents, parameters, p_mutate_param=0.05):
-    training = Training(
-        objective=parents[0].objective,
-        optimizer=None,
-        metric=parents[0].metric,
-        stopping=parents[0].stopping,
-        batch_size=parents[0].batch_size)
-    parent_optimizers = [p.optimizer for p in parents]
-    if parameters.is_optimizer_search():
-        training.optimizer = _mix_optimizers(parent_optimizers)
-        _mutate_optimizer(training.optimizer, parameters, p_mutate_param)
+def mix_blueprints(blueprint1, blueprint2,
+                   parameters, p_mutate_param=0.05, mutation_std=0.1,
+                   mutate_layout=True, mutate_params=True, mutate_optimizer=True):
+    layouts = [blueprint1.layout, blueprint2.layout]
+    if mutate_layout:
+        layout = _mix_layouts(
+            layouts,
+            parameters,
+            p_mutate_param,
+            mutation_std)
     else:
-        training.optimizer = random_list_element(parent_optimizers)
-    return training
+        layout = deepcopy(random_list_element(layouts))
+    if mutate_params:
+        _mutate_layer_parameters(
+            layout,
+            parameters,
+            p_mutate_param=p_mutate_param,
+            mutation_std=mutation_std)
+    trainings = [blueprint1.training, blueprint2.training]
+    training = deepcopy(random_list_element(trainings))
+    if mutate_optimizer:
+        _mutate_optimizer(
+            training.optimizer,
+            parameters,
+            p_mutate_param,
+            mutation_std)
+    return Blueprint(layout, training)
 
 
 def _mix_optimizers(parents):
     return deepcopy(random_list_element(parents))
 
 
-def _mix_layouts(parent_layouts, parameters, p_mutate_param=0.05):
+def _mix_layouts(parent_layouts, parameters, p_mutate_param=0.05, mutation_std=0.1):
     layout = Layout(
         input_size=parent_layouts[0].input_size,
         output_size=parent_layouts[0].output_size,
         output_activation=parent_layouts[0].output_activation,
         block=parent_layouts[0].block,
         block_input=parent_layouts[0].block_input)
-    if parameters.is_layout_search():
-        rows = random_list_element([len(p.rows) for p in parent_layouts])
-        for row_idx in range(rows):
-            parent_rows = [p.rows[row_idx] for p in parent_layouts if row_idx < len(p.rows)]
-            layout.rows.append(_mix_row(layout, row_idx, parent_rows, parameters))
-        _setup_block_inputs(layout, parameters)
-        if parameters.is_parameters_search():
-            _mutate_layer_parameters(
-                layout,
-                parameters,
-                p_mutate_param=p_mutate_param)
-    else:
-        layout.rows = random_list_element([
-            parent_layouts[0].rows,
-            parent_layouts[1].rows])
+    rows = random_list_element([len(p.rows) for p in parent_layouts])
+    for row_idx in range(rows):
+        parent_rows = [p.rows[row_idx] for p in parent_layouts if row_idx < len(p.rows)]
+        layout.rows.append(_mix_rows(layout, row_idx, parent_rows))
+    _setup_block_inputs(layout, parameters)
     return layout
 
 
-def _mix_row(layout, row_idx, parent_rows, parameters):
+def _mix_rows(layout, row_idx, parent_rows):
     row = Row()
     blocks = random_list_element([len(p.blocks) for p in parent_rows])
     for block_idx in range(blocks):

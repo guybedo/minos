@@ -9,6 +9,7 @@ from keras.layers.core import Dense
 
 from minos.experiment.experiment import ExperimentParameters, Experiment,\
     check_experiment_parameters, InvalidParametersException
+from minos.experiment.training import Training
 from minos.model.parameter import random_param_value, int_param, float_param,\
     string_param
 from minos.model.parameters import reference_parameters,\

@@ -39,7 +39,6 @@ class MutationTest(unittest.TestCase):
             test_batch_iterator=None,
             environment=None,
             parameters=ExperimentParameters(use_default_values=False))
-        experiment.parameters.all_search_parameters(True)
         check_experiment_parameters(experiment)
         for _ in range(10):
             blueprint = create_random_blueprint(experiment)
@@ -93,7 +92,6 @@ class MutationTest(unittest.TestCase):
             test_batch_iterator=None,
             environment=None,
             parameters=ExperimentParameters(use_default_values=False))
-        experiment.parameters.all_search_parameters(True)
         for _ in range(10):
             blueprint = create_random_blueprint(experiment)
             mutant = mutate_blueprint(
@@ -110,11 +108,9 @@ class MutationTest(unittest.TestCase):
                         original_block = original_row.blocks[block_idx]
                         original_layer = original_block.layers[layer_idx]
                         for name, value in layer.parameters.items():
-                            if value == original_layer.parameters[name]:
-                                pass
                             self.assertTrue(
                                 value != original_layer.parameters[name],
-                                'Should have mutated parameter')
+                                'Should have mutated parameter %s' % name)
 
     def test_mutate_w_custom_definitions(self):
 
@@ -141,7 +137,6 @@ class MutationTest(unittest.TestCase):
         experiment_parameters.layout_parameter('layers', int_param(1, 5))
         experiment_parameters.layer_parameter('Dense2.output_dim', int_param(10, 500))
         experiment_parameters.layer_parameter('Dropout.p', float_param(0.1, 0.9))
-        experiment_parameters.all_search_parameters(True)
         experiment = Experiment(
             'test',
             layout,

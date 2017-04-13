@@ -44,7 +44,6 @@ class GaSearchTest(unittest.TestCase):
             experiment_parameters.layout_parameter('blocks', 1)
             experiment_parameters.layout_parameter('layers', 1)
             experiment_parameters.layer_parameter('Dense.output_dim', int_param(10, 500))
-            experiment_parameters.all_search_parameters(True)
 
             experiment_label = 'test__reuters_experiment'
             experiment = Experiment(
@@ -55,7 +54,9 @@ class GaSearchTest(unittest.TestCase):
                 test_batch_iterator,
                 CpuEnvironment(n_jobs=2, data_dir=tmp_dir),
                 parameters=experiment_parameters)
-            run_ga_search_experiment(experiment, population_size=2, generations=2)
+            experiment.settings.ga['population_size'] = 2
+            experiment.settings.ga['generations'] = 2
+            run_ga_search_experiment(experiment)
             self.assertTrue(
                 isfile(experiment.get_log_filename()),
                 'Should have logged')
@@ -87,7 +88,10 @@ class GaSearchTest(unittest.TestCase):
             self.assertTrue(score[1] > 0, 'Should have valid score')
 
             step, population = load_experiment_checkpoint(experiment)
-            self.assertEqual(generations - 1, step, 'Should have loaded checkpoint')
+            self.assertEqual(
+                experiment.settings.ga['generations'] - 1,
+                step,
+                'Should have loaded checkpoint')
             self.assertIsNotNone(population, 'Should have loaded checkpoint')
             blueprint = load_experiment_best_blueprint(
                 experiment.label,
@@ -97,6 +101,7 @@ class GaSearchTest(unittest.TestCase):
                 cpu_device(),
                 compile_model=False)
             self.assertIsNotNone(model, 'Should have loaded and built best model from experiment')
+
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

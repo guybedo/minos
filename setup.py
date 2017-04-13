@@ -3,7 +3,7 @@ from setuptools import setup
 
 
 setup(name='pyminos',
-      version='0.4.11',
+      version='0.5.1',
       description='Neural nets hyper parameters & architecture search with genetic algorithms',
       keywords=['keras', 'genetic algorithm', 'neural network', 'deep learning'],
       author='Julien Roch',
@@ -14,7 +14,7 @@ setup(name='pyminos',
           'numpy>=1.12'],
       install_requires=[
           'numpy>=1.12',
-          'keras',
+          'keras==1.2.2',
           'deap>=1.0.2'],
       extras_require={
           'h5py': ['h5py'],

@@ -30,14 +30,22 @@ class GaModelExperiment(Experiment, GaExperiment):
             individual=mutate_blueprint(
                 individual,
                 self.parameters,
+                p_mutate_layout=self.settings.ga['p_mutation'],
+                p_mutate_param=self.settings.ga['p_mutation'],
+                mutation_std=self.settings.ga['mutation_std'],
                 mutate_in_place=mutate_in_place))
 
     def mix_individuals(self, individual1, individual2):
-        return GaBlueprint(
-            individual=mix_blueprints(
-                individual1,
-                individual2,
-                self.parameters))
+        mix = mix_blueprints(
+            individual1,
+            individual2,
+            parameters=self.parameters,
+            mutate_layout=self.settings.search['layout'],
+            mutate_params=self.settings.search['parameters'],
+            mutate_optimizer=self.settings.search['optimizer'],
+            p_mutate_param=self.settings.ga['p_mutation'],
+            mutation_std=self.settings.ga['mutation_std'])
+        return GaBlueprint(individual=mix)
 
 
 class GaBlueprint(Blueprint, GaIndividual):
@@ -70,12 +78,9 @@ class GaBlueprint(Blueprint, GaIndividual):
         return GaBlueprint.copy(self)
 
 
-def run_ga_search_experiment(experiment, population_size=50,
-                             generations=100, resume=False, log_level='INFO'):
+def run_ga_search_experiment(experiment, resume=False, log_level='INFO'):
     run_experiment(
         GaModelExperiment(experiment),
         search,
         resume=resume,
-        log_level=log_level,
-        population_size=population_size,
-        generations=generations)
+        log_level=log_level)

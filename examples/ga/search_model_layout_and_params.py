@@ -3,18 +3,18 @@ Created on Feb 6, 2017
 
 @author: julien
 '''
-from minos.experiment.experiment import Experiment, ExperimentParameters
+from examples.ga.dataset import get_reuters_dataset
+from minos.experiment.experiment import Experiment, ExperimentParameters,\
+    load_experiment_best_blueprint, ExperimentSettings
 from minos.experiment.ga import run_ga_search_experiment
 from minos.experiment.training import Training, AccuracyDecreaseStoppingCondition,\
     EpochStoppingCondition
 from minos.model.build import ModelBuilder
 from minos.model.model import Objective, Optimizer, Metric, Layout
 from minos.model.parameter import int_param, string_param, float_param
-from minos.train.utils import CpuEnvironment, cpu_device, Environment
-
-from examples.ga.dataset import get_reuters_dataset
+from minos.tf_utils import cpu_device
+from minos.train.utils import CpuEnvironment, Environment
 import numpy as np
-from build.lib.minos.experiment.experiment import load_experiment_best_blueprint
 
 
 np.random.seed(1337)
@@ -31,6 +31,15 @@ def build_layout(input_size, output_size):
         output_activation='softmax')
 
 
+def experiment_settings():
+    experiment_settings = ExperimentSettings()
+    experiment_settings.ga['population_size'] = 25
+    experiment_settings.ga['generations'] = 50
+    experiment_settings.ga['p_offspring'] = 0.75
+    experiment_settings.ga['offsprings'] = 2
+    experiment_settings.ga['p_mutation'] = 0.5
+    experiment_settings.ga['mutation_std'] = 0.25
+    
 def custom_experiment_parameters():
     """ Here we define the experiment parameters.
     We are using use_default_values=True, which will initialize
@@ -86,7 +95,6 @@ def search_model(experiment_label, steps, batch_size=32):
         Metric('categorical_accuracy'),
         epoch_stopping_condition(),
         batch_size)
-    parameters = custom_experiment_parameters()
     experiment = Experiment(
         experiment_label,
         layout,
@@ -94,11 +102,10 @@ def search_model(experiment_label, steps, batch_size=32):
         batch_iterator,
         test_batch_iterator,
         CpuEnvironment(n_jobs=2),
-        parameters=parameters)
+        settings=experiment_settings(),
+        parameters=custom_experiment_parameters())
     run_ga_search_experiment(
         experiment,
-        population_size=100,
-        generations=steps,
         resume=False,
         log_level='DEBUG')
 
