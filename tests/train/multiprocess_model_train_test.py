@@ -22,7 +22,7 @@ batch_iterator, test_batch_iterator, nb_classes = get_reuters_dataset(batch_size
 
 
 def multiprocess_fit(blueprint):
-    #disable_sysout()
+    disable_sysout()
     from minos.model.build import ModelBuilder
     model = ModelBuilder().build(blueprint, default_device())
     model.fit_generator(

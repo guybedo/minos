@@ -22,7 +22,7 @@ from tests.fixtures import get_reuters_dataset
 class TrainTest(unittest.TestCase):
 
     def test_model_trainer(self):
-        #disable_sysout()
+        disable_sysout()
         with tempfile.TemporaryDirectory() as tmp_dir:
             batch_size = 50
             batch_iterator, test_batch_iterator, nb_classes = get_reuters_dataset(batch_size, 1000)

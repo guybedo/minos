@@ -25,7 +25,7 @@ from tests.fixtures import get_reuters_dataset
 class TrainTest(unittest.TestCase):
 
     def test_train(self):
-        #disable_sysout()
+        disable_sysout()
         with tempfile.TemporaryDirectory() as tmp_dir:
             batch_size = 50
             batch_iterator, test_batch_iterator, nb_classes = get_reuters_dataset(batch_size, 1000)
@@ -71,7 +71,7 @@ class TrainTest(unittest.TestCase):
                 'should have evaluated the model')
 
     def test_model_trainer(self):
-        #disable_sysout()
+        disable_sysout()
         with tempfile.TemporaryDirectory() as tmp_dir:
             batch_size = 50
             batch_iterator, test_batch_iterator, nb_classes = get_reuters_dataset(batch_size, 1000)
@@ -113,7 +113,7 @@ class TrainTest(unittest.TestCase):
             self.assertIsNotNone(history, 'Should have the training history')
 
     def test_early_stopping_condition_test(self):
-        #disable_sysout()
+        disable_sysout()
         with tempfile.TemporaryDirectory() as tmp_dir:
             batch_size = 50
             min_epoch = 10
