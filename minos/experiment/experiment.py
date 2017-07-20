@@ -22,13 +22,14 @@ class Experiment(object):
 
     def __init__(self, label, layout=None, training=None,
                  batch_iterator=None, test_batch_iterator=None,
-                 environment=None, parameters=None, resume=False):
+                 environment=None, settings=None, parameters=None, resume=False):
         self.label = label
         self.layout = layout
         self.training = training
         self.batch_iterator = batch_iterator
         self.test_batch_iterator = test_batch_iterator
         self.environment = environment or Environment()
+        self.settings = settings or ExperimentSettings()
         self.parameters = parameters or ExperimentParameters()
 
     def get_experiment_data_dir(self):
@@ -127,22 +128,23 @@ class InvalidParametersException(Exception):
 
 
 def check_experiment_parameters(experiment):
-    _assert_search_parameters_defined(experiment.parameters)
-    if not experiment.parameters.is_layout_search()\
+    if not experiment.settings.is_layout_search()\
             and not experiment.layout.block:
         raise InvalidParametersException(
             'You have to specify a block template '
             + ' if you disable layout search')
-    if experiment.parameters.is_layout_search()\
-            and not experiment.parameters.is_parameters_search():
+    if experiment.settings.is_layout_search()\
+            and not experiment.settings.is_parameters_search():
         raise InvalidParametersException(
             'If you do a layout search, '
             + ' you have to enable parameters search too')
-
     _assert_valid_training_parameters(experiment)
 
 
 def _assert_valid_training_parameters(experiment):
+    if not experiment.training:
+        raise InvalidParametersException(
+            'No training parameters specified')
     if not isinstance(
             experiment.training.stopping,
             AccuracyDecreaseStoppingCondition):
@@ -154,13 +156,6 @@ def _assert_valid_training_parameters(experiment):
             + '%s != %s' % (
                 training.metric.metric,
                 training.stopping.metric))
-
-
-def _assert_search_parameters_defined(experiment_parameters):
-    for param_name in reference_parameters['search'].keys():
-        value = experiment_parameters.get_search_parameter(param_name)
-        if value is None or not isinstance(value, bool):
-            raise InvalidParametersException('undefined search parameter: %s' % param_name)
 
 
 def load_experiment_best_blueprint(experiment_label, environment=Environment()):
@@ -194,6 +189,39 @@ def load_experiment_blueprints(experiment_label, step, environment=Environment()
     data_filename = experiment.get_step_data_filename(step)
     with open(data_filename, 'rb') as data_file:
         return pickle.load(data_file)
+
+
+class ExperimentSettings(object):
+
+    def __init__(self):
+        self.search = self._search_settings()
+        self.ga = self._ga_settings()
+
+    def _search_settings(self):
+        return {
+            'layout': True,
+            'parameters': True,
+            'optimizer': True}
+
+    def _ga_settings(self):
+        return {
+            'population_size': 50,
+            'generations': 100,
+            'p_offspring': 0.5,
+            'offsprings': 2,
+            'p_mutation': 0.25,
+            'mutation_std': 0.25,
+            'p_aliens': 0.25,
+            'aliens': 0.1}
+
+    def is_layout_search(self):
+        return self.search['layout']
+
+    def is_parameters_search(self):
+        return self.search['parameters']
+
+    def is_optimizer_search(self):
+        return self.search['optimizer']
 
 
 class ExperimentParameters(object):
@@ -247,27 +275,6 @@ class ExperimentParameters(object):
         else:
             node[path[0]] = value
         return node
-
-    def is_layout_search(self):
-        return self.get_search_parameter('layout')
-
-    def is_parameters_search(self):
-        return self.get_search_parameter('parameters')
-
-    def is_optimizer_search(self):
-        return self.get_search_parameter('optimizer')
-
-    def get_search_parameter(self, name):
-        return self.get_parameter('search', name)
-
-    def search_parameter(self, name, value):
-        return self._set_parameter(
-            ['search', name],
-            value)
-
-    def all_search_parameters(self, value):
-        for param_name in self.get_parameter('search').keys():
-            self.search_parameter(param_name, value)
 
     def layout_parameter(self, name, value):
         return self._set_parameter(
@@ -330,6 +337,18 @@ class Blueprint(object):
         self.layout = layout
         self.training = training
         self.score = score
+
+    def scale_layers_size(self, scale):
+        for layer in self.layout.get_layers():
+            units = layer.parameters.get('units', None)
+            if not units:
+                continue
+            new_size = units * scale
+            logging.debug(
+                'Scaling output dim: %d=>%d',
+                units,
+                new_size)
+            layer.parameters['units'] = new_size
 
     def todict(self):
         return {

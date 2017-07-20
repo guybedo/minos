@@ -8,12 +8,14 @@ from keras.callbacks import EarlyStopping
 
 class Training(object):
 
-    def __init__(self, objective, optimizer, metric, stopping, batch_size):
+    def __init__(self, objective, optimizer, metric,
+                 stopping, batch_size, class_weight=None):
         self.objective = objective
         self.optimizer = optimizer
         self.metric = metric
         self.stopping = stopping
         self.batch_size = batch_size
+        self.class_weight = class_weight
 
     def todict(self):
         return {
@@ -21,7 +23,8 @@ class Training(object):
             'optimizer': self.optimizer.todict(),
             'metric': self.metric.todict(),
             'stopping': self.stopping.todict(),
-            'batch_size': self.batch_size}
+            'batch_size': self.batch_size,
+            'class_weight': self.class_weight}
 
 
 class EpochStoppingCondition(object):
@@ -47,12 +50,18 @@ class AccuracyDecreaseStoppingCondition(object):
     """
 
     def __init__(self, max_epoch, metric='accuracy',
-                 noprogress_count=3, min_epoch=0):
+                 validation_metric=True, noprogress_count=3, min_epoch=0):
         self.metric = metric
+        self.validation_metric = validation_metric
         self.noprogress_count = noprogress_count
         self.min_epoch = min_epoch
         self.max_epoch = max_epoch
         self.epoch = 0
+
+    def get_monitor_metric(self):
+        if self.validation_metric:
+            return get_associated_validation_metric(self.metric)
+        return self.metric
 
     def is_min_epoch_defined(self):
         return self.min_epoch and self.min_epoch > 0
@@ -77,24 +86,25 @@ def get_associated_validation_metric(metric):
         return None
     if metric.startswith('val_'):
         return metric
-    return 'val_%s' % metric
+    else:
+        return 'val_%s' % metric
 
 
-class AccuracyDecreaseStoppingConditionWrapper(EarlyStopping):
+class StoppingConditionWrapper(EarlyStopping):
 
-    def __init__(self, accuracy_condition):
+    def __init__(self, condition):
         super().__init__(
-            monitor=get_associated_validation_metric(accuracy_condition.metric),
-            patience=accuracy_condition.noprogress_count)
-        self.accuracy_condition = accuracy_condition
+            monitor=condition.get_monitor_metric(),
+            patience=condition.noprogress_count)
+        self.condition = condition
 
     def on_epoch_end(self, epoch, logs=None):
-        self.accuracy_condition.epoch = epoch
-        if self.accuracy_condition.is_min_epoch_defined()\
-                and not self.accuracy_condition.is_at_least_min_epoch():
+        self.condition.epoch = epoch
+        if self.condition.is_min_epoch_defined()\
+                and not self.condition.is_at_least_min_epoch():
             return
-        if self.accuracy_condition.is_max_epoch_defined()\
-                and not self.accuracy_condition.is_at_most_max_epoch():
+        if self.condition.is_max_epoch_defined()\
+                and not self.condition.is_at_most_max_epoch():
             self.stopped_epoch = epoch
             self.model.stop_training = True
             return

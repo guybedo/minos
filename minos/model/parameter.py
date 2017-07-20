@@ -134,35 +134,32 @@ def is_valid_param_value(param, value):
     return True
 
 
-def mutate_param(param, value):
-    try:
-        if isinstance(param, dict):
-            return {
-                name: mutate_param(nested, value.get(name, None))
-                for name, nested in param.items()}
-        if not isinstance(param, Parameter):
-            return value
-        if param.optional and value is not None and rand.random() < 0.5:
-            return None
-        if param.values:
-            if len(set(param.values)) == 1:
-                return param.values[0]
+def mutate_param(param, value, mutation_std=0.1):
+    if isinstance(param, dict):
+        return {
+            name: mutate_param(nested, value.get(name, None))
+            for name, nested in param.items()}
+    if not isinstance(param, Parameter):
+        return value
+    if param.optional and value is not None and rand.random() < 0.5:
+        return None
+    if param.values:
+        if len(set(param.values)) == 1:
+            return param.values[0]
+        element = random_list_element(param.values)
+        while element == value:
             element = random_list_element(param.values)
-            while element == value:
-                element = random_list_element(param.values)
-            return element
-        elif param.lo == param.hi:
-            return value
-        value = value or 0
-        std = (param.hi - param.lo) / 10
-        if param.param_type == int:
-            std = max(1, std)
+        return element
+    elif param.lo == param.hi:
+        return value
+    value = value or 0
+    std = mutation_std * (param.hi - param.lo)
+    if param.param_type == int:
+        std = max(1, std)
+    new_value = value + param.param_type(numpy.random.normal(0, std, 1)[0])
+    while not is_valid_param_value(param, new_value) or new_value == value:
         new_value = value + param.param_type(numpy.random.normal(0, std, 1)[0])
-        while not is_valid_param_value(param, new_value) or new_value == value:
-            new_value = value + param.param_type(numpy.random.normal(0, std, 1)[0])
-        return new_value
-    except Exception as ex:
-        raise
+    return new_value
 
 
 def _is_optional_param(param):
@@ -214,7 +211,7 @@ def random_param_value(param):
     return param.param_type(value)
 
 
-def random_initial_param_value(param):
+def random_initial_param_value(param, mutation_std=0.1):
     if isinstance(param, dict):
         return _random_dict_param_value(param)
     if isinstance(param, list) or isinstance(param, tuple):
@@ -231,9 +228,7 @@ def random_initial_param_value(param):
         initial_value = param.lo
     else:
         initial_value = 0
-    if rand.random() < 0.5:
-        return mutate_param(param, initial_value)
-    return initial_value
+    return mutate_param(param, initial_value, mutation_std)
 
 
 def random_list_element(elements):

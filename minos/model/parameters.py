@@ -4,15 +4,10 @@ Created on Feb 14, 2017
 @author: julien
 '''
 
-from minos.model.parameter import int_param, string_param, boolean_param,\
+from minos.model.parameter import int_param, string_param, boolean_param, \
     float_param
 
-
 reference_parameters = {
-    'search': {
-        'layout': boolean_param(default=True),
-        'parameters': boolean_param(default=True),
-        'optimizer': boolean_param(default=True)},
     'layout': {
         'rows': int_param(lo=1, hi=3, default=1),
         'blocks': int_param(lo=1, hi=5, default=1),
@@ -29,8 +24,8 @@ reference_parameters = {
     },
     'layers': {
         'Dense': {
-            'output_dim': int_param(1, 1000, default=100),
-            'init': string_param(
+            'units': int_param(1, 1000, default=100),
+            'kernel_initializer': string_param(
                 ['uniform',
                  'lecun_uniform',
                  'normal',
@@ -53,27 +48,30 @@ reference_parameters = {
                  'hard_sigmoid',
                  'linear'],
                 default='relu'),
-            'bias': boolean_param(default=True),
-            'W_regularizer': {
+            'use_bias': boolean_param(default=True),
+            'kernel_regularizer': {
                 'l1': float_param(optional=True, default=None),
-                'l2': float_param(optional=True, default=None)},
-            'b_regularizer': {
+                'l2': float_param(optional=True, default=None)
+            },
+            'bias_regularizer': {
                 'l1': float_param(optional=True, default=None),
-                'l2': float_param(optional=True, default=None)},
+                'l2': float_param(optional=True, default=None)
+            },
             'activity_regularizer': {
                 'l1': float_param(optional=True, default=None),
-                'l2': float_param(optional=True, default=None)},
-            'W_constraint': string_param(
+                'l2': float_param(optional=True, default=None)
+            },
+            'kernel_constraint': string_param(
                 ['maxnorm', 'nonneg', 'unitnorm'],
                 default=None,
                 optional=True),
-            'b_constraint': string_param(
+            'bias_constraint': string_param(
                 ['maxnorm', 'nonneg', 'unitnorm'],
                 default=None,
                 optional=True)
         },
         'Dropout': {
-            'p': float_param(default=0.75)},
+            'rate': float_param(default=0.75)},
         'Merge': {
             'mode': string_param(
                 ['sum', 'mul', 'concat', 'ave', 'cos', 'dot', 'max'],
@@ -191,7 +189,6 @@ reference_parameters = {
         'cosine_proximity'
     ])
 }
-
 
 custom_layers = dict()
 custom_activations = dict()
