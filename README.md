@@ -1,7 +1,10 @@
 # Minos
+<img align="right" src="http://the-charlie.com/ml/wp-content/uploads/2017/07/minos_the_horned_demigod_by_xgotikox-doapbf.jpg">
 
 Search for neural networks architecture & hyper parameters with genetic algorithms.
 It is built on top of Keras+Tensorflow to build/train/evaluate the models, and uses DEAP for the genetic algorithms.
+
+
 
 ## Getting Started
 
@@ -9,7 +12,7 @@ You need to have tensorflow installed, see [tensorflow linux](requirements-tenso
 
 Install minos:
 ```
-pip install pyminos==0.4.3
+pip install pyminos==0.5.1
 ```
 
 To run an experiment and search hyper parameters and/or architecture for a model and dataset, you can define a simple layout
@@ -57,7 +60,7 @@ experiment_parameters.layout_parameter('layers', int_param(1, 5))
 
 If you want to test layers with size between 10 and 500 units:
 ```python
-experiment_parameters.layer_parameter('Dense.output_dim', int_param(10, 500))
+experiment_parameters.layer_parameter('Dense.units', int_param(10, 500))
 ```
 
 You can find all the parameters and their default values here in [parameters] (minos/model/parameters.py)
