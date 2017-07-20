@@ -134,7 +134,7 @@ def load_best_model(experiment_label, step):
     """
     blueprint = load_experiment_best_blueprint(
         experiment_label,
-        CpuEnvironment())
+        Environment())
     return ModelBuilder().build(
         blueprint,
         cpu_device(),
