@@ -66,11 +66,11 @@ def init_ga_env(experiment):
 
 
 def evolve(population=None, population_size=50,
-           population_age=0, generations=50, offspring_count=2, cx_prob=0.5,
-           mutpb_prob=0.2, aliens_ratio=0.1, generation_logger=None):
+           population_age=0, generations=50, p_offspring=0.5,
+           offsprings=2, p_aliens=0.25, aliens=0.1, generation_logger=None):
     population = population or toolbox.population(n=population_size)
     for generation in range(population_age, generations):
-        logging.info('Evolving generation %d' % generation)
+        logging.info('Evolving generation {} of {}'.format(generation, generations))
         fit_invalid_individuals(population)
         population = list(sorted(
             population,
@@ -79,17 +79,13 @@ def evolve(population=None, population_size=50,
             generation_logger(generation, population)
         mates = tools.selBest(population, population_size)
         for ind1, ind2 in zip(mates[::2], mates[1::2]):
-            if rand.random() < cx_prob:
-                children = toolbox.mate(ind1, ind2, offspring_count)
+            if rand.random() < p_offspring:
+                children = toolbox.mate(ind1, ind2, offsprings)
                 for child in children:
                     del child.fitness.values
                 population += children
-        for mutant in population:
-            if rand.random() < mutpb_prob:
-                toolbox.mutate(mutant)
-                del mutant.fitness.values
-        if aliens_ratio > 0:
-            population += toolbox.population(n=int(population_size * aliens_ratio))
+        if rand.random() < p_aliens:
+            population += toolbox.population(n=int(population_size * aliens))
     return population
 
 
@@ -104,9 +100,12 @@ def fit_invalid_individuals(population):
         ind.fitness.values = fit
 
 
-def search(experiment, population_size=50, generations=100,
-           population_age=0, population=None, log_level='INFO', step_logger=None):
+def search(experiment,
+           population_age=0, population=None,
+           log_level='INFO', step_logger=None):
     init_ga_env(experiment)
+    population_size = experiment.settings.ga['population_size']
+    generations = experiment.settings.ga['generations']
     if population:
         population = [
             toolbox.make_individual(individual)
@@ -118,6 +117,10 @@ def search(experiment, population_size=50, generations=100,
         population_age=population_age,
         population_size=population_size,
         generations=generations,
+        p_offspring=experiment.settings.ga['p_offspring'],
+        offsprings=experiment.settings.ga['offsprings'],
+        p_aliens=experiment.settings.ga['p_aliens'],
+        aliens=experiment.settings.ga['aliens'],
         generation_logger=get_generation_logger(experiment, step_logger))
 
 

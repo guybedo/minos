@@ -13,7 +13,7 @@ from keras.callbacks import ModelCheckpoint
 import numpy
 
 from minos.experiment.training import EpochStoppingCondition,\
-    AccuracyDecreaseStoppingCondition, AccuracyDecreaseStoppingConditionWrapper,\
+    AccuracyDecreaseStoppingCondition, StoppingConditionWrapper,\
     get_associated_validation_metric
 from minos.tf_utils import setup_tf_session
 from minos.utils import disable_sysout, load_keras_model
@@ -92,11 +92,12 @@ class ModelTrainer(object):
         self.test_batch_iterator = test_batch_iterator
 
     def train(self, blueprint, device,
-              save_best_model=False, model_filename=None):
+              save_best_model=False, model_filename=None, class_weight=None):
         try:
             model = self.model_builder.build(
                 blueprint,
                 device)
+            class_weight = class_weight or blueprint.training.class_weight
             setup_tf_session(device)
             nb_epoch, callbacks = self._get_stopping_parameters(blueprint)
             if save_best_model:
@@ -105,12 +106,13 @@ class ModelTrainer(object):
                     blueprint.training.metric.metric))
             start = time()
             history = model.fit_generator(
-                self.batch_iterator,
-                self.batch_iterator.samples_per_epoch,
-                nb_epoch,
+                generator=self.batch_iterator,
+                steps_per_epoch=self.batch_iterator.samples_per_epoch,
+                epochs=nb_epoch,
                 callbacks=callbacks,
                 validation_data=self.test_batch_iterator,
-                nb_val_samples=self.test_batch_iterator.sample_count)
+                validation_steps=self.test_batch_iterator.sample_count,
+                class_weight=class_weight)
             if save_best_model:
                 del model
                 model = load_keras_model(model_filename)
@@ -143,7 +145,7 @@ class ModelTrainer(object):
                 blueprint.training.stopping.min_epoch,
                 blueprint.training.stopping.max_epoch)
             stopping_callbacks = [
-                AccuracyDecreaseStoppingConditionWrapper(blueprint.training.stopping)]
+                StoppingConditionWrapper(blueprint.training.stopping)]
         return nb_epoch, stopping_callbacks
 
 
@@ -171,4 +173,5 @@ def model_training_worker(batch_iterator, test_batch_iterator,
             work = work_queue.get()
         except Exception as ex:
             logging.error(ex)
+            logging.error(traceback.format_exc())
     result_queue.put(None)

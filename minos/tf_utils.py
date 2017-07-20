@@ -62,4 +62,6 @@ def setup_tf_session(device):
     elif is_cpu_device(device):
         config.gpu_options.visible_device_list = ''
     from keras import backend
-    backend.set_session(tf.Session(config=config))
+    session = tf.Session(config=config)
+    session.run(tf.global_variables_initializer())
+    backend.set_session(session)
