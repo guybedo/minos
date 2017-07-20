@@ -43,7 +43,7 @@ class GaSearchTest(unittest.TestCase):
             experiment_parameters.layout_parameter('rows', 1)
             experiment_parameters.layout_parameter('blocks', 1)
             experiment_parameters.layout_parameter('layers', 1)
-            experiment_parameters.layer_parameter('Dense.output_dim', int_param(10, 500))
+            experiment_parameters.layer_parameter('Dense.units', int_param(10, 200))
 
             experiment_label = 'test__reuters_experiment'
             experiment = Experiment(
@@ -78,10 +78,10 @@ class GaSearchTest(unittest.TestCase):
             disable_sysout()
             model.fit_generator(
                 generator=batch_iterator,
-                samples_per_epoch=batch_iterator.samples_per_epoch,
-                nb_epoch=5,
+                steps_per_epoch=batch_iterator.samples_per_epoch,
+                epochs=5,
                 validation_data=test_batch_iterator,
-                nb_val_samples=test_batch_iterator.sample_count)
+                validation_steps=test_batch_iterator.sample_count)
             score = model.evaluate_generator(
                 test_batch_iterator,
                 val_samples=test_batch_iterator.sample_count)

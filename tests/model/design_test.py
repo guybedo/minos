@@ -143,7 +143,7 @@ class DesignTest(unittest.TestCase):
             block=[
                 ('Dense', {'activation': 'relu'}),
                 'Dropout',
-                ('Dense', {'output_dim': 100})])
+                ('Dense', {'units': 100})])
         training = Training(
             objective=None,
             optimizer=Optimizer(),
@@ -226,7 +226,7 @@ class DesignTest(unittest.TestCase):
                 [('Dense', {'activation': 'relu'})],
                 [('Dense', {'activation': 'relu'}),
                     'Dropout',
-                    ('Dense', {'output_dim': 100})]])
+                    ('Dense', {'units': 100})]])
         training = Training(
             objective=None,
             optimizer=Optimizer(),

@@ -106,12 +106,12 @@ class ModelTrainer(object):
                     blueprint.training.metric.metric))
             start = time()
             history = model.fit_generator(
-                self.batch_iterator,
-                self.batch_iterator.samples_per_epoch,
-                nb_epoch,
+                generator=self.batch_iterator,
+                steps_per_epoch=self.batch_iterator.samples_per_epoch,
+                epochs=nb_epoch,
                 callbacks=callbacks,
                 validation_data=self.test_batch_iterator,
-                nb_val_samples=self.test_batch_iterator.sample_count,
+                validation_steps=self.test_batch_iterator.sample_count,
                 class_weight=class_weight)
             if save_best_model:
                 del model
@@ -173,4 +173,5 @@ def model_training_worker(batch_iterator, test_batch_iterator,
             work = work_queue.get()
         except Exception as ex:
             logging.error(ex)
+            logging.error(traceback.format_exc())
     result_queue.put(None)

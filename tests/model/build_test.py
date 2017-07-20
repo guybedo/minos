@@ -37,9 +37,9 @@ class BuildTest(unittest.TestCase):
         experiment_parameters = ExperimentParameters(use_default_values=False)
         experiment_parameters.layout_parameter('blocks', int_param(1, 5))
         experiment_parameters.layout_parameter('layers', int_param(1, 5))
-        experiment_parameters.layer_parameter('Dense.output_dim', int_param(10, 500))
+        experiment_parameters.layer_parameter('Dense.units', int_param(10, 500))
         experiment_parameters.layer_parameter('Dense.activation', string_param(['relu', 'tanh']))
-        experiment_parameters.layer_parameter('Dropout.p', float_param(0.1, 0.9))
+        experiment_parameters.layer_parameter('Dropout.rate', float_param(0.1, 0.9))
         experiment = Experiment(
             'test',
             layout,
@@ -97,9 +97,9 @@ class BuildTest(unittest.TestCase):
         experiment_parameters.layout_parameter('blocks', int_param(1, 5))
         experiment_parameters.layout_parameter('layers', int_param(1, 5))
         experiment_parameters.layout_parameter('layer.type', string_param(['Dense2']))
-        experiment_parameters.layer_parameter('Dense2.output_dim', int_param(10, 500))
+        experiment_parameters.layer_parameter('Dense2.units', int_param(10, 500))
         experiment_parameters.layer_parameter('Dense2.activation', string_param(['custom_activation']))
-        experiment_parameters.layer_parameter('Dropout.p', float_param(0.1, 0.9))
+        experiment_parameters.layer_parameter('Dropout.rate', float_param(0.1, 0.9))
         experiment = Experiment(
             'test',
             layout,

@@ -43,18 +43,18 @@ def custom_activation(x):
 
 class CustomLayer(Layer):
 
-    def __init__(self, output_dim=None, activation=None, **kwargs):
-        self.output_dim = output_dim
+    def __init__(self, units=None, activation=None, **kwargs):
+        self.units = units
         self.activation = activations.get(activation)
         super().__init__(**kwargs)
 
     def build(self, input_shape):
         self.W = self.add_weight(
-            shape=(input_shape[1], self.output_dim),
+            shape=(input_shape[1], self.units),
             initializer='glorot_uniform',
             trainable=True)
         self.b = self.add_weight(
-            shape=(self.output_dim,),
+            shape=(self.units,),
             initializer='glorot_uniform',
             trainable=True)
         super().build(input_shape)  # Be sure to call this somewhere!
@@ -63,7 +63,7 @@ class CustomLayer(Layer):
         return self.activation(backend.dot(x, self.W) + self.b)
 
     def get_output_shape_for(self, input_shape):
-        return (input_shape[0], self.output_dim)
+        return (input_shape[0], self.units)
 
 
 def register_custom_definitions():
@@ -74,7 +74,7 @@ def register_custom_definitions():
         'custom_layer_1',
         CustomLayer,
         params={
-            'output_dim': int_param(10, 100),
+            'units': int_param(10, 100),
             'activation': 'custom_activation_1'})
 
 
@@ -107,9 +107,9 @@ def custom_experiment_parameters():
     experiment_parameters.layout_parameter('rows', 1)
     experiment_parameters.layout_parameter('blocks', int_param(1, 2))
     experiment_parameters.layout_parameter('layers', int_param(1, 3))
-    experiment_parameters.layer_parameter('Dense.output_dim', int_param(10, 100))
+    experiment_parameters.layer_parameter('Dense.units', int_param(10, 100))
     experiment_parameters.layer_parameter('Dense.activation', string_param(['relu', 'custom_activation_1']))
-    experiment_parameters.layer_parameter('Dropout.p', float_param(0.1, 0.9))
+    experiment_parameters.layer_parameter('Dropout.rate', float_param(0.1, 0.9))
     return experiment_parameters
 
 

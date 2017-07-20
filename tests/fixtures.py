@@ -40,18 +40,18 @@ def get_reuters_dataset(batch_size, max_words):
 
 class CustomLayer(Layer):
 
-    def __init__(self, output_dim=None, activation=None, **kwargs):
-        self.output_dim = output_dim
+    def __init__(self, units=None, activation=None, **kwargs):
+        self.units = units
         self.activation = activation
         super().__init__(**kwargs)
 
     def build(self, input_shape):
         self.W = self.add_weight(
-            shape=(input_shape[1], self.output_dim),
+            shape=(input_shape[1], self.units),
             initializer='glorot_uniform',
             trainable=True)
         self.b = self.add_weight(
-            shape=(self.output_dim,),
+            shape=(self.units,),
             initializer='glorot_uniform',
             trainable=True)
         super().build(input_shape)  # Be sure to call this somewhere!
@@ -61,11 +61,11 @@ class CustomLayer(Layer):
         return activation(backend.dot(x, self.W) + self.b)
 
     def get_output_shape_for(self, input_shape):
-        return (input_shape[0], self.output_dim)
+        return (input_shape[0], self.units)
 
     def get_config(self):
         config = {
-            'output_dim': self.output_dim,
+            'units': self.units,
             'activation': self.activation}
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))

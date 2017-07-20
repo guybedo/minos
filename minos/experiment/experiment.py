@@ -340,15 +340,15 @@ class Blueprint(object):
 
     def scale_layers_size(self, scale):
         for layer in self.layout.get_layers():
-            output_dim = layer.parameters.get('output_dim', None)
-            if not output_dim:
+            units = layer.parameters.get('units', None)
+            if not units:
                 continue
-            new_size = output_dim * scale
+            new_size = units * scale
             logging.debug(
                 'Scaling output dim: %d=>%d',
-                output_dim,
+                units,
                 new_size)
-            layer.parameters['output_dim'] = new_size
+            layer.parameters['units'] = new_size
 
     def todict(self):
         return {
