@@ -98,7 +98,7 @@ class MutationTest(unittest.TestCase):
                 blueprint,
                 parameters=experiment.parameters,
                 p_mutate_layout=0,
-                p_mutate_param=2,
+                p_mutate_param=1,
                 mutate_in_place=False)
 
             for row_idx, row in enumerate(mutant.layout.rows):
@@ -152,7 +152,7 @@ class MutationTest(unittest.TestCase):
                 blueprint,
                 parameters=experiment.parameters,
                 p_mutate_layout=0,
-                p_mutate_param=2,
+                p_mutate_param=1,
                 mutate_in_place=False)
             for row_idx, row in enumerate(mutant.layout.rows):
                 for block_idx, block in enumerate(row.blocks):
