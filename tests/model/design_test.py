@@ -36,7 +36,6 @@ class DesignTest(unittest.TestCase):
             test_batch_iterator=None,
             environment=None,
             parameters=ExperimentParameters(use_default_values=False))
-        experiment.parameters.all_search_parameters(True)
         check_experiment_parameters(experiment)
         for _ in range(10):
             blueprint = create_random_blueprint(experiment)
@@ -144,7 +143,7 @@ class DesignTest(unittest.TestCase):
             block=[
                 ('Dense', {'activation': 'relu'}),
                 'Dropout',
-                ('Dense', {'output_dim': 100})])
+                ('Dense', {'units': 100})])
         training = Training(
             objective=None,
             optimizer=Optimizer(),
@@ -159,14 +158,24 @@ class DesignTest(unittest.TestCase):
             test_batch_iterator=None,
             environment=None,
             parameters=ExperimentParameters(use_default_values=False))
-        experiment.parameters.search_parameter('layout', False)
-        experiment.parameters.search_parameter('parameters', True)
-        experiment.parameters.search_parameter('optimizer', True)
+        experiment.settings.search['layout'] = False
         for _ in range(10):
             blueprint1 = create_random_blueprint(experiment)
             blueprint2 = create_random_blueprint(experiment)
-            blueprint3 = mix_blueprints(blueprint1, blueprint2, experiment.parameters)
-            blueprint4 = mutate_blueprint(blueprint1, experiment.parameters, mutate_in_place=False)
+            blueprint3 = mix_blueprints(
+                blueprint1,
+                blueprint2,
+                parameters=experiment.parameters,
+                mutate_layout=experiment.settings.search['layout'],
+                mutate_params=experiment.settings.search['parameters'],
+                mutate_optimizer=experiment.settings.search['optimizer'])
+            blueprint4 = mutate_blueprint(
+                blueprint1,
+                parameters=experiment.parameters,
+                mutate_layout=experiment.settings.search['layout'],
+                mutate_params=experiment.settings.search['parameters'],
+                mutate_optimizer=experiment.settings.search['optimizer'],
+                mutate_in_place=False)
             for idx, blueprint in enumerate([blueprint1, blueprint2, blueprint3, blueprint4]):
                 self.assertIsNotNone(blueprint, 'Should have created a blueprint')
                 self.assertIsNotNone(blueprint.layout, 'Should have created a layout')
@@ -217,7 +226,7 @@ class DesignTest(unittest.TestCase):
                 [('Dense', {'activation': 'relu'})],
                 [('Dense', {'activation': 'relu'}),
                     'Dropout',
-                    ('Dense', {'output_dim': 100})]])
+                    ('Dense', {'units': 100})]])
         training = Training(
             objective=None,
             optimizer=Optimizer(),
@@ -232,37 +241,47 @@ class DesignTest(unittest.TestCase):
             test_batch_iterator=None,
             environment=None,
             parameters=ExperimentParameters(use_default_values=False))
-        experiment.parameters.search_parameter('layout', False)
-        experiment.parameters.search_parameter('parameters', True)
-        experiment.parameters.search_parameter('optimizer', True)
+        experiment.settings.search['layout'] = False
         for _ in range(10):
             blueprint1 = create_random_blueprint(experiment)
             blueprint2 = create_random_blueprint(experiment)
-            blueprint3 = mix_blueprints(blueprint1, blueprint2, experiment.parameters)
-            blueprint4 = mutate_blueprint(blueprint1, experiment.parameters, mutate_in_place=False)
+            blueprint3 = mix_blueprints(
+                blueprint1,
+                blueprint2,
+                parameters=experiment.parameters,
+                mutate_layout=experiment.settings.search['layout'],
+                mutate_params=experiment.settings.search['parameters'],
+                mutate_optimizer=experiment.settings.search['optimizer'])
+            blueprint4 = mutate_blueprint(
+                blueprint1, 
+                parameters=experiment.parameters,
+                mutate_layout=experiment.settings.search['layout'],
+                mutate_params=experiment.settings.search['parameters'],
+                mutate_optimizer=experiment.settings.search['optimizer'], 
+                mutate_in_place=False)
             for idx, blueprint in enumerate([blueprint1, blueprint2, blueprint3, blueprint4]):
                 self.assertIsNotNone(blueprint, 'Should have created a blueprint')
                 self.assertIsNotNone(blueprint.layout, 'Should have created a layout')
                 self.assertEqual(
                     1,
                     len(blueprint.layout.get_rows()),
-                    'Should have 1 row')
+                    'Should have 1 row for blueprint %d' % idx)
                 self.assertEqual(
                     1,
                     len(blueprint.layout.get_blocks()),
-                    'Should have 1 block')
+                    'Should have 1 block for blueprint %d' % idx)
                 for i, row in enumerate(blueprint.layout.get_rows()):
                     blocks = len(row.get_blocks())
                     self.assertTrue(
                         is_valid_param_value(
                             experiment.parameters.get_layout_parameter('blocks'),
                             blocks),
-                        'Invalid value')
+                        'Invalid value for blueprint %d' % idx)
                     for block in row.get_blocks():
                         self.assertTrue(
                             len(block.layers) == len(layout.block[0])
                             or len(block.layers) == len(layout.block[1]),
-                            'Should have used template')
+                            'Should have used template for blueprint %d' % idx)
 
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ from minos.model.model import Layout, Objective, Metric
 from minos.model.parameter import int_param, string_param, float_param
 from minos.model.parameters import register_custom_activation,\
     register_custom_layer, reference_parameters
-from minos.train.utils import cpu_device
+from minos.tf_utils import cpu_device
 
 
 class BuildTest(unittest.TestCase):
@@ -34,14 +34,12 @@ class BuildTest(unittest.TestCase):
             metric=Metric('categorical_accuracy'),
             stopping=EpochStoppingCondition(10),
             batch_size=250)
-
         experiment_parameters = ExperimentParameters(use_default_values=False)
         experiment_parameters.layout_parameter('blocks', int_param(1, 5))
         experiment_parameters.layout_parameter('layers', int_param(1, 5))
-        experiment_parameters.layer_parameter('Dense.output_dim', int_param(10, 500))
+        experiment_parameters.layer_parameter('Dense.units', int_param(10, 500))
         experiment_parameters.layer_parameter('Dense.activation', string_param(['relu', 'tanh']))
-        experiment_parameters.layer_parameter('Dropout.p', float_param(0.1, 0.9))
-        experiment_parameters.all_search_parameters(True)
+        experiment_parameters.layer_parameter('Dropout.rate', float_param(0.1, 0.9))
         experiment = Experiment(
             'test',
             layout,
@@ -58,10 +56,16 @@ class BuildTest(unittest.TestCase):
             blueprint2 = create_random_blueprint(experiment)
             model = ModelBuilder().build(blueprint2, cpu_device())
             self.assertIsNotNone(model, 'Should have built a model')
-            blueprint3 = mix_blueprints(blueprint1, blueprint2, experiment_parameters)
+            blueprint3 = mix_blueprints(
+                blueprint1, 
+                blueprint2, 
+                experiment_parameters)
             model = ModelBuilder().build(blueprint3, cpu_device())
             self.assertIsNotNone(model, 'Should have built a model')
-            blueprint4 = mutate_blueprint(blueprint1, experiment_parameters, mutate_in_place=False)
+            blueprint4 = mutate_blueprint(
+                blueprint1, 
+                experiment_parameters, 
+                mutate_in_place=False)
             model = ModelBuilder().build(blueprint4, cpu_device())
             self.assertIsNotNone(model, 'Should have built a model')
 
@@ -93,10 +97,9 @@ class BuildTest(unittest.TestCase):
         experiment_parameters.layout_parameter('blocks', int_param(1, 5))
         experiment_parameters.layout_parameter('layers', int_param(1, 5))
         experiment_parameters.layout_parameter('layer.type', string_param(['Dense2']))
-        experiment_parameters.layer_parameter('Dense2.output_dim', int_param(10, 500))
+        experiment_parameters.layer_parameter('Dense2.units', int_param(10, 500))
         experiment_parameters.layer_parameter('Dense2.activation', string_param(['custom_activation']))
-        experiment_parameters.layer_parameter('Dropout.p', float_param(0.1, 0.9))
-        experiment_parameters.all_search_parameters(True)
+        experiment_parameters.layer_parameter('Dropout.rate', float_param(0.1, 0.9))
         experiment = Experiment(
             'test',
             layout,

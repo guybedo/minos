@@ -11,7 +11,8 @@ from minos.experiment.experiment import ExperimentParameters, Experiment
 from minos.experiment.training import Training, EpochStoppingCondition
 from minos.model.design import create_random_blueprint
 from minos.model.model import Layout, Objective, Optimizer, Metric
-from minos.train.utils import default_device, CpuEnvironment
+from minos.tf_utils import default_device
+from minos.train.utils import CpuEnvironment
 from minos.utils import disable_sysout
 from tests.fixtures import get_reuters_dataset
 
@@ -21,15 +22,15 @@ batch_iterator, test_batch_iterator, nb_classes = get_reuters_dataset(batch_size
 
 
 def multiprocess_fit(blueprint):
-    disable_sysout()
+    #disable_sysout()
     from minos.model.build import ModelBuilder
     model = ModelBuilder().build(blueprint, default_device())
     model.fit_generator(
         generator=batch_iterator,
-        samples_per_epoch=batch_iterator.samples_per_epoch,
-        nb_epoch=10,
+        steps_per_epoch=batch_iterator.samples_per_epoch,
+        epochs=10,
         validation_data=test_batch_iterator,
-        nb_val_samples=test_batch_iterator.sample_count)
+        validation_steps=test_batch_iterator.sample_count)
 
 
 class TrainTest(unittest.TestCase):

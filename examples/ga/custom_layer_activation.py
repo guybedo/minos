@@ -8,7 +8,8 @@ from keras import backend, activations
 from keras.engine.topology import Layer
 
 from examples.ga.dataset import get_reuters_dataset
-from minos.experiment.experiment import Experiment, ExperimentParameters
+from minos.experiment.experiment import Experiment, ExperimentParameters,\
+    load_experiment_best_blueprint, ExperimentSettings
 from minos.experiment.ga import run_ga_search_experiment
 from minos.experiment.training import Training, AccuracyDecreaseStoppingCondition,\
     EpochStoppingCondition
@@ -17,7 +18,8 @@ from minos.model.model import Objective, Optimizer, Metric, Layout
 from minos.model.parameter import int_param, string_param, float_param
 from minos.model.parameters import register_custom_activation,\
     register_custom_layer
-from minos.train.utils import CpuEnvironment, cpu_device, Environment
+from minos.tf_utils import cpu_device
+from minos.train.utils import CpuEnvironment, Environment
 import numpy as np
 
 
@@ -41,18 +43,18 @@ def custom_activation(x):
 
 class CustomLayer(Layer):
 
-    def __init__(self, output_dim=None, activation=None, **kwargs):
-        self.output_dim = output_dim
+    def __init__(self, units=None, activation=None, **kwargs):
+        self.units = units
         self.activation = activations.get(activation)
         super().__init__(**kwargs)
 
     def build(self, input_shape):
         self.W = self.add_weight(
-            shape=(input_shape[1], self.output_dim),
+            shape=(input_shape[1], self.units),
             initializer='glorot_uniform',
             trainable=True)
         self.b = self.add_weight(
-            shape=(self.output_dim,),
+            shape=(self.units,),
             initializer='glorot_uniform',
             trainable=True)
         super().build(input_shape)  # Be sure to call this somewhere!
@@ -61,7 +63,7 @@ class CustomLayer(Layer):
         return self.activation(backend.dot(x, self.W) + self.b)
 
     def get_output_shape_for(self, input_shape):
-        return (input_shape[0], self.output_dim)
+        return (input_shape[0], self.units)
 
 
 def register_custom_definitions():
@@ -72,8 +74,19 @@ def register_custom_definitions():
         'custom_layer_1',
         CustomLayer,
         params={
-            'output_dim': int_param(10, 100),
+            'units': int_param(10, 100),
             'activation': 'custom_activation_1'})
+
+
+def experiment_settings():
+    experiment_settings = ExperimentSettings()
+    experiment_settings.search['layout'] = False
+    experiment_settings.ga['population_size'] = 25
+    experiment_settings.ga['generations'] = 50
+    experiment_settings.ga['p_offspring'] = 0.75
+    experiment_settings.ga['offsprings'] = 2
+    experiment_settings.ga['p_mutation'] = 0.5
+    experiment_settings.ga['mutation_std'] = 0.25
 
 
 def custom_experiment_parameters():
@@ -94,9 +107,9 @@ def custom_experiment_parameters():
     experiment_parameters.layout_parameter('rows', 1)
     experiment_parameters.layout_parameter('blocks', int_param(1, 2))
     experiment_parameters.layout_parameter('layers', int_param(1, 3))
-    experiment_parameters.layer_parameter('Dense.output_dim', int_param(10, 100))
+    experiment_parameters.layer_parameter('Dense.units', int_param(10, 100))
     experiment_parameters.layer_parameter('Dense.activation', string_param(['relu', 'custom_activation_1']))
-    experiment_parameters.layer_parameter('Dropout.p', float_param(0.1, 0.9))
+    experiment_parameters.layer_parameter('Dropout.rate', float_param(0.1, 0.9))
     return experiment_parameters
 
 
@@ -132,6 +145,7 @@ def search_model(experiment_label, steps, batch_size=32):
         Metric('categorical_accuracy'),
         epoch_stopping_condition(),
         batch_size)
+    settings = experiment_settings()
     parameters = custom_experiment_parameters()
     experiment = Experiment(
         experiment_label,
@@ -140,11 +154,10 @@ def search_model(experiment_label, steps, batch_size=32):
         batch_iterator,
         test_batch_iterator,
         CpuEnvironment(n_jobs=1),
+        settings=settings,
         parameters=parameters)
     run_ga_search_experiment(
         experiment,
-        population_size=100,
-        generations=steps,
         resume=False,
         log_level='DEBUG')
 
@@ -169,6 +182,7 @@ def main():
     register_custom_definitions()
     search_model(experiment_label, steps)
     load_best_model(experiment_label, steps - 1)
+
 
 if __name__ == '__main__':
     main()

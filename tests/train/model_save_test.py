@@ -15,8 +15,9 @@ from minos.model.model import Layout, Objective, Optimizer, Metric
 from minos.model.parameter import int_param
 from minos.model.parameters import register_custom_activation,\
     register_custom_layer
-from minos.train.utils import default_device, CpuEnvironment
-from minos.utils import disable_sysout, load_model, load_keras_model
+from minos.tf_utils import default_device
+from minos.train.utils import CpuEnvironment
+from minos.utils import disable_sysout, load_keras_model
 from tests.fixtures import get_reuters_dataset, CustomLayer
 
 
@@ -29,7 +30,7 @@ class ModelSaveTest(unittest.TestCase):
             return x
 
         register_custom_activation('custom_activation', custom_activation)
-        register_custom_layer('custom_layer', CustomLayer, {'output_dim': int_param(1, 100)})
+        register_custom_layer('custom_layer', CustomLayer, {'units': int_param(1, 100)})
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             batch_size = 50
@@ -62,10 +63,11 @@ class ModelSaveTest(unittest.TestCase):
             model = ModelBuilder().build(blueprint, default_device())
             model.fit_generator(
                 generator=batch_iterator,
-                samples_per_epoch=batch_iterator.samples_per_epoch,
-                nb_epoch=10,
+                steps_per_epoch=batch_iterator.samples_per_epoch,
+                epochs=5,
                 validation_data=test_batch_iterator,
-                nb_val_samples=test_batch_iterator.sample_count)
+                validation_steps=test_batch_iterator.sample_count,
+                verbose=2)
             filepath = join(tmp_dir, 'model')
             model.save(filepath)
             model = load_keras_model(filepath)

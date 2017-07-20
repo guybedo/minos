@@ -33,7 +33,6 @@ class MixTest(unittest.TestCase):
             test_batch_iterator=None,
             environment=None,
             parameters=ExperimentParameters(use_default_values=False))
-        experiment.parameters.all_search_parameters(True)
         check_experiment_parameters(experiment)
         for _ in range(10):
             blueprint1 = create_random_blueprint(experiment)

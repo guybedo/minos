@@ -30,8 +30,8 @@ def create_experiment(input_size, output_size, batch_size):
         stopping=AccuracyDecreaseStoppingCondition(
             metric='categorical_accuracy',
             min_epoch=5,
-            max_epoch=25,
-            noprogress_count=5),
+            max_epoch=10,
+            noprogress_count=2),
         batch_size=batch_size)
     parameters = ExperimentParameters(use_default_values=True)
     layout = Layout(

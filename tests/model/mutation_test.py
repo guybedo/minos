@@ -6,21 +6,16 @@ Created on Feb 15, 2017
 from copy import deepcopy
 import unittest
 
-from keras import activations, backend
-from keras.engine.topology import Layer
 from keras.layers.core import Dense
 
 from minos.experiment.experiment import Experiment, ExperimentParameters,\
     check_experiment_parameters
 from minos.experiment.training import Training, EpochStoppingCondition
-from minos.model.build import ModelBuilder
-from minos.model.design import create_random_blueprint, mutate_blueprint,\
-    mix_blueprints
+from minos.model.design import create_random_blueprint, mutate_blueprint
 from minos.model.model import Layout, Objective, Metric
-from minos.model.parameter import int_param, string_param, float_param
+from minos.model.parameter import int_param, float_param
 from minos.model.parameters import register_custom_activation,\
     register_custom_layer, reference_parameters
-from minos.train.utils import cpu_device
 
 
 class MutationTest(unittest.TestCase):
@@ -44,7 +39,6 @@ class MutationTest(unittest.TestCase):
             test_batch_iterator=None,
             environment=None,
             parameters=ExperimentParameters(use_default_values=False))
-        experiment.parameters.all_search_parameters(True)
         check_experiment_parameters(experiment)
         for _ in range(10):
             blueprint = create_random_blueprint(experiment)
@@ -98,14 +92,13 @@ class MutationTest(unittest.TestCase):
             test_batch_iterator=None,
             environment=None,
             parameters=ExperimentParameters(use_default_values=False))
-        experiment.parameters.all_search_parameters(True)
         for _ in range(10):
             blueprint = create_random_blueprint(experiment)
             mutant = mutate_blueprint(
                 blueprint,
                 parameters=experiment.parameters,
                 p_mutate_layout=0,
-                p_mutate_param=1,
+                p_mutate_param=2,
                 mutate_in_place=False)
 
             for row_idx, row in enumerate(mutant.layout.rows):
@@ -115,11 +108,9 @@ class MutationTest(unittest.TestCase):
                         original_block = original_row.blocks[block_idx]
                         original_layer = original_block.layers[layer_idx]
                         for name, value in layer.parameters.items():
-                            if value == original_layer.parameters[name]:
-                                pass
                             self.assertTrue(
                                 value != original_layer.parameters[name],
-                                'Should have mutated parameter')
+                                'Should have mutated parameter %s' % name)
 
     def test_mutate_w_custom_definitions(self):
 
@@ -144,9 +135,8 @@ class MutationTest(unittest.TestCase):
         experiment_parameters = ExperimentParameters(use_default_values=False)
         experiment_parameters.layout_parameter('blocks', int_param(1, 5))
         experiment_parameters.layout_parameter('layers', int_param(1, 5))
-        experiment_parameters.layer_parameter('Dense2.output_dim', int_param(10, 500))
-        experiment_parameters.layer_parameter('Dropout.p', float_param(0.1, 0.9))
-        experiment_parameters.all_search_parameters(True)
+        experiment_parameters.layer_parameter('Dense2.units', int_param(10, 500))
+        experiment_parameters.layer_parameter('Dropout.rate', float_param(0.1, 0.9))
         experiment = Experiment(
             'test',
             layout,
@@ -162,7 +152,7 @@ class MutationTest(unittest.TestCase):
                 blueprint,
                 parameters=experiment.parameters,
                 p_mutate_layout=0,
-                p_mutate_param=1,
+                p_mutate_param=2,
                 mutate_in_place=False)
             for row_idx, row in enumerate(mutant.layout.rows):
                 for block_idx, block in enumerate(row.blocks):

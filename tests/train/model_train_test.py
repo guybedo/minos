@@ -15,8 +15,9 @@ from minos.experiment.training import Training, EpochStoppingCondition,\
 from minos.model.build import ModelBuilder
 from minos.model.design import create_random_blueprint
 from minos.model.model import Layout, Objective, Optimizer, Metric
+from minos.tf_utils import default_device, cpu_device
 from minos.train.trainer import ModelTrainer
-from minos.train.utils import default_device, CpuEnvironment, cpu_device
+from minos.train.utils import CpuEnvironment
 from minos.utils import disable_sysout
 from tests.fixtures import get_reuters_dataset
 
@@ -24,7 +25,7 @@ from tests.fixtures import get_reuters_dataset
 class TrainTest(unittest.TestCase):
 
     def test_train(self):
-        disable_sysout()
+        #disable_sysout()
         with tempfile.TemporaryDirectory() as tmp_dir:
             batch_size = 50
             batch_iterator, test_batch_iterator, nb_classes = get_reuters_dataset(batch_size, 1000)
@@ -55,10 +56,10 @@ class TrainTest(unittest.TestCase):
             model = ModelBuilder().build(blueprint, default_device())
             result = model.fit_generator(
                 generator=batch_iterator,
-                samples_per_epoch=batch_iterator.samples_per_epoch,
-                nb_epoch=10,
+                steps_per_epoch=batch_iterator.samples_per_epoch,
+                epochs=10,
                 validation_data=test_batch_iterator,
-                nb_val_samples=test_batch_iterator.sample_count)
+                validation_steps=test_batch_iterator.sample_count)
             self.assertIsNotNone(
                 result,
                 'should have fit the model')
@@ -70,7 +71,7 @@ class TrainTest(unittest.TestCase):
                 'should have evaluated the model')
 
     def test_model_trainer(self):
-        disable_sysout()
+        #disable_sysout()
         with tempfile.TemporaryDirectory() as tmp_dir:
             batch_size = 50
             batch_iterator, test_batch_iterator, nb_classes = get_reuters_dataset(batch_size, 1000)
@@ -112,7 +113,7 @@ class TrainTest(unittest.TestCase):
             self.assertIsNotNone(history, 'Should have the training history')
 
     def test_early_stopping_condition_test(self):
-        disable_sysout()
+        #disable_sysout()
         with tempfile.TemporaryDirectory() as tmp_dir:
             batch_size = 50
             min_epoch = 10

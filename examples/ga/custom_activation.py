@@ -6,7 +6,8 @@ Created on Feb 6, 2017
 from keras import backend
 
 from examples.ga.dataset import get_reuters_dataset
-from minos.experiment.experiment import Experiment, ExperimentParameters
+from minos.experiment.experiment import Experiment, ExperimentParameters,\
+    ExperimentSettings, load_experiment_best_blueprint
 from minos.experiment.ga import run_ga_search_experiment
 from minos.experiment.training import Training, AccuracyDecreaseStoppingCondition,\
     EpochStoppingCondition
@@ -14,7 +15,8 @@ from minos.model.build import ModelBuilder
 from minos.model.model import Objective, Optimizer, Metric, Layout
 from minos.model.parameter import int_param, string_param, float_param
 from minos.model.parameters import register_custom_activation
-from minos.train.utils import CpuEnvironment, cpu_device, Environment
+from minos.tf_utils import cpu_device
+from minos.train.utils import CpuEnvironment, Environment
 import numpy as np
 
 
@@ -42,6 +44,17 @@ def register_custom_definitions():
         custom_activation)
 
 
+def experiment_settings():
+    experiment_settings = ExperimentSettings()
+    experiment_settings.search['layout'] = False
+    experiment_settings.ga['population_size'] = 25
+    experiment_settings.ga['generations'] = 50
+    experiment_settings.ga['p_offspring'] = 0.75
+    experiment_settings.ga['offsprings'] = 2
+    experiment_settings.ga['p_mutation'] = 0.5
+    experiment_settings.ga['mutation_std'] = 0.25
+
+
 def custom_experiment_parameters():
     """ Here we define the experiment parameters.
     We are using use_default_values=True, which will initialize
@@ -60,9 +73,9 @@ def custom_experiment_parameters():
     experiment_parameters.layout_parameter('rows', 1)
     experiment_parameters.layout_parameter('blocks', int_param(1, 5))
     experiment_parameters.layout_parameter('layers', int_param(1, 5))
-    experiment_parameters.layer_parameter('Dense.output_dim', int_param(10, 100))
+    experiment_parameters.layer_parameter('Dense.units', int_param(10, 100))
     experiment_parameters.layer_parameter('Dense.activation', string_param(['relu', 'tanh', 'custom_activation_1']))
-    experiment_parameters.layer_parameter('Dropout.p', float_param(0.1, 0.9))
+    experiment_parameters.layer_parameter('Dropout.rate', float_param(0.1, 0.9))
     return experiment_parameters
 
 
@@ -98,6 +111,7 @@ def search_model(experiment_label, steps, batch_size=32):
         Metric('categorical_accuracy'),
         epoch_stopping_condition(),
         batch_size)
+    settings = experiment_settings()
     parameters = custom_experiment_parameters()
     experiment = Experiment(
         experiment_label,
@@ -106,11 +120,10 @@ def search_model(experiment_label, steps, batch_size=32):
         batch_iterator,
         test_batch_iterator,
         CpuEnvironment(n_jobs=1),
+        settings=settings,
         parameters=parameters)
     run_ga_search_experiment(
         experiment,
-        population_size=100,
-        generations=steps,
         resume=False,
         log_level='DEBUG')
 
@@ -121,8 +134,7 @@ def load_best_model(experiment_label, step):
     """
     blueprint = load_experiment_best_blueprint(
         experiment_label,
-        step,
-        Environment())
+        CpuEnvironment())
     return ModelBuilder().build(
         blueprint,
         cpu_device(),
@@ -135,6 +147,7 @@ def main():
     register_custom_definitions()
     search_model(experiment_label, steps)
     load_best_model(experiment_label, steps - 1)
+
 
 if __name__ == '__main__':
     main()
