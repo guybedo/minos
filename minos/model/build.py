@@ -52,7 +52,10 @@ def _build_single_device_model(blueprint, device):
         predictions = Dense(
             blueprint.layout.output_size,
             activation=blueprint.layout.output_activation)(final_layer_input)
-        return Model(inputs=inputs, outputs=predictions)
+        model = Model(inputs=inputs, outputs=predictions)
+        logging.info("Blueprint = {}, model = {}".format(blueprint,str(model.to_json())))
+        model.summary()
+        return model
 
 
 class MultiGpuModel(Model):
