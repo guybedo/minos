@@ -11,6 +11,8 @@ from random import Random
 
 from deap import creator, base, tools
 
+from minos.model.build import ModelBuilder
+from minos.tf_utils import cpu_device
 
 toolbox = base.Toolbox()
 rand = Random()
@@ -39,16 +41,28 @@ def mate(experiment, individual1, individual2, count=2):
         for child in children]
 
 
+def get_is_minimization_problem(experiment):
+    return experiment.settings.ga['fitness_type'] == 'FitnessMin'
+
+
+def get_fitness_weights(fitness_type):
+    if fitness_type == 'FitnessMin':
+        return (-1.0,)
+    else:
+        return (1.0,)
+
+
 def init_ga_env(experiment):
     if not isinstance(experiment, GaExperiment):
         raise Exception(
             'Unexpected experiment type %s'
             % str(experiment))
-    creator.create("FitnessMax", base.Fitness, weights=(1.0,))
+    fitness_type = experiment.settings.ga['fitness_type']
+    creator.create(fitness_type, base.Fitness, weights=get_fitness_weights(fitness_type))
     creator.create(
         "Individual",
         experiment.individual_type,
-        fitness=creator.FitnessMax)  # @UndefinedVariable
+        fitness=getattr(creator, fitness_type))  # @UndefinedVariable
     toolbox.register(
         "individual",
         random_individual,
@@ -65,16 +79,20 @@ def init_ga_env(experiment):
     toolbox.register("evaluate", experiment.evaluate)
 
 
+def sort_population(population, population_size, minimize=False):
+    return list(sorted(
+        population,
+        key=lambda i: -i.fitness.values[0] if not minimize else i.fitness.values[0]))[:population_size]
+
+
 def evolve(population=None, population_size=50,
            population_age=0, generations=50, p_offspring=0.5,
-           offsprings=2, p_aliens=0.25, aliens=0.1, generation_logger=None):
+           offsprings=2, p_aliens=0.25, aliens=0.1, generation_logger=None, fitness_type=False):
     population = population or toolbox.population(n=population_size)
     for generation in range(population_age, generations):
-        logging.info('Evolving generation {} of {}'.format(generation, generations))
+        logging.info('Evolving generation {} of {} with {}'.format(generation, generations, fitness_type))
         fit_invalid_individuals(population)
-        population = list(sorted(
-            population,
-            key=lambda i: -i.fitness.values[0]))[:population_size]
+        population = sort_population(population, population_size, fitness_type == 'FitnessMin')
         if generation_logger:
             generation_logger(generation, population)
         mates = tools.selBest(population, population_size)
@@ -121,7 +139,8 @@ def search(experiment,
         offsprings=experiment.settings.ga['offsprings'],
         p_aliens=experiment.settings.ga['p_aliens'],
         aliens=experiment.settings.ga['aliens'],
-        generation_logger=get_generation_logger(experiment, step_logger))
+        generation_logger=get_generation_logger(experiment, step_logger),
+        fitness_type=experiment.settings.ga['fitness_type'])
 
 
 def _get_population_filename(output_dir, experiment_label):
@@ -129,9 +148,8 @@ def _get_population_filename(output_dir, experiment_label):
 
 
 def get_generation_logger(experiment, step_logger=None):
-
     def _log(generation, population):
-        log_generation_info(generation, population)
+        log_generation_info(experiment, generation, population)
         if not step_logger:
             return
         step_logger(experiment, generation, population)
@@ -139,13 +157,20 @@ def get_generation_logger(experiment, step_logger=None):
     return _log
 
 
-def log_generation_info(generation, population):
+def log_generation_info(experiment, generation, population):
+    minimize = get_is_minimization_problem(experiment)
     sorted_population = list(sorted(
         population,
-        key=lambda i: -i.fitness.values[0]))
+        key=lambda i: -i.fitness.values[0] if not minimize else i.fitness.values[0]))
     population_scores = [
         individual.fitness.values[0]
         for individual in population]
+
+    model = ModelBuilder().build(
+        population[0],
+        cpu_device(),
+        compile_model=True)
+
     generation_info = [
         {'generation': generation},
         {'average': numpy.mean(population_scores)},
@@ -156,7 +181,6 @@ def log_generation_info(generation, population):
 
 
 class GaExperiment(object):
-
     def __init__(self):
         pass
 
@@ -165,7 +189,6 @@ class GaExperiment(object):
 
 
 class GaIndividual(object):
-
     def __init__(self, **kwargs):
         vars(self).update(kwargs)
 

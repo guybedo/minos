@@ -10,18 +10,19 @@ from os import path, makedirs
 from os.path import join
 import pickle
 
-from minos.experiment.training import AccuracyDecreaseStoppingCondition
+from minos.experiment.training import AccuracyDecreaseStoppingCondition, Training
+from minos.model.model import Layout
 from minos.model.parameter import Parameter, str_param_name, expand_param_path
-from minos.model.parameters import reference_parameters, get_custom_layers,\
+from minos.model.parameters import reference_parameters, get_custom_layers, \
     get_custom_activations
-from minos.train.utils import Environment
+from minos.search.ga.ga_search import get_is_minimization_problem
+from minos.train.utils import Environment, SimpleBatchIterator
 from minos.utils import setup_logging
 
 
 class Experiment(object):
-
-    def __init__(self, label, layout=None, training=None,
-                 batch_iterator=None, test_batch_iterator=None,
+    def __init__(self, label, layout: Layout = None, training: Training = None,
+                 batch_iterator: SimpleBatchIterator = None, test_batch_iterator: SimpleBatchIterator = None,
                  environment=None, settings=None, parameters=None, resume=False):
         self.label = label
         self.layout = layout
@@ -71,6 +72,7 @@ class Experiment(object):
 def setup_experiment(experiment, resume=False, log_level='INFO'):
     if not path.exists(experiment.get_experiment_data_dir()):
         makedirs(experiment.get_experiment_data_dir())
+
     setup_logging(
         experiment.get_log_filename(),
         log_level,
@@ -122,18 +124,17 @@ def run_experiment(experiment, runner,
 
 
 class InvalidParametersException(Exception):
-
     def __init__(self, detail):
         super().__init__('Invalid parameters: %s' % detail)
 
 
 def check_experiment_parameters(experiment):
-    if not experiment.settings.is_layout_search()\
+    if not experiment.settings.is_layout_search() \
             and not experiment.layout.block:
         raise InvalidParametersException(
             'You have to specify a block template '
             + ' if you disable layout search')
-    if experiment.settings.is_layout_search()\
+    if experiment.settings.is_layout_search() \
             and not experiment.settings.is_parameters_search():
         raise InvalidParametersException(
             'If you do a layout search, '
@@ -162,26 +163,30 @@ def load_experiment_best_blueprint(experiment_label, environment=Environment()):
     experiment = Experiment(experiment_label, environment=environment)
     last_step, _ = load_experiment_checkpoint(experiment)
     blueprints = list()
+    minimize = get_is_minimization_problem(experiment)
     for step in range(last_step):
         blueprint = load_experiment_step_best_blueprint(
             experiment_label,
             step,
-            environment=environment)
+            environment=environment,
+        minimize=minimize)
         if blueprint:
             blueprints.append(blueprint)
     if len(blueprints) == 0:
         return None
-    return list(sorted(blueprints, key=lambda b: -b.score[0]))[0]
+    return list(sorted(blueprints, key=lambda b: -b.score[0] if not minimize else b.score[0]))[0]
 
 
-def load_experiment_step_best_blueprint(experiment_label, step, environment=Environment()):
+def load_experiment_step_best_blueprint(experiment_label, step, environment=Environment(),minimize=False):
+    experiment = Experiment(experiment_label, environment=environment)
+    minimize = get_is_minimization_problem(experiment)
     blueprints = load_experiment_blueprints(
         experiment_label,
         step,
         environment)
     if len(blueprints) == 0:
         return None
-    return list(sorted(blueprints, key=lambda b: -b.score[0]))[0]
+    return list(sorted(blueprints, key=lambda b: -b.score[0] if not minimize else b.score[0]))[0]
 
 
 def load_experiment_blueprints(experiment_label, step, environment=Environment()):
@@ -192,7 +197,6 @@ def load_experiment_blueprints(experiment_label, step, environment=Environment()
 
 
 class ExperimentSettings(object):
-
     def __init__(self):
         self.search = self._search_settings()
         self.ga = self._ga_settings()
@@ -212,6 +216,7 @@ class ExperimentSettings(object):
             'p_mutation': 0.25,
             'mutation_std': 0.25,
             'p_aliens': 0.25,
+            'fitness_type': 'FitnessMax',
             'aliens': 0.1}
 
     def is_layout_search(self):
@@ -225,7 +230,6 @@ class ExperimentSettings(object):
 
 
 class ExperimentParameters(object):
-
     def __init__(self, use_default_values=True):
         self.parameters = deepcopy(reference_parameters)
         self._load_custom_definitions()
@@ -332,7 +336,6 @@ class ExperimentParameters(object):
 
 
 class Blueprint(object):
-
     def __init__(self, layout, training, score=None):
         self.layout = layout
         self.training = training

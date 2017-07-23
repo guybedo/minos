@@ -273,7 +273,7 @@
                     <div class="col-md-12">
                         <div class="card">
                             <div class="header">
-                                <h4 class="title">Generation Score</h4>
+                                <h4 class="title">Generation {{evolutionNumber}} Scores</h4>
                                 <p class="category">{{layoutCount}} generations</p>
                             </div>
                             <div class="content">
@@ -310,6 +310,8 @@
                                     <th>ID</th>
 
                                     <th>Score</th>
+                                    <th>Objective/Loss</th>
+                                    <th>Metric</th>
                                     <th>Optimizer</th>
                                     <th>Layout</th>
                                     </thead>
@@ -317,6 +319,8 @@
                                     <tr ng-repeat="row in experimentData track by $index">
                                         <td>{{$index}}</td>
                                         <td>{{row.score[0]}}</td>
+                                        <td>{{row.training.objective.objective}}</td>
+                                        <td>{{row.training.metric.metric}}</td>
                                         <td>{{row.training.optimizer.optimizer}}</td>
                                         <td>
                                             <div ng-repeat="minos_row in row.layout.rows">
@@ -334,6 +338,9 @@
                                                         <div ng-repeat="layer in block.layers">
                                                             -{{layer.layer_type}}({{layer.parameters.units}}) :
                                                             <pre>{{layer.parameters}}</pre>
+                                                        </div>
+                                                        </div>
+                                                -Output({{row.layout.output_size}}) <pre>output_activation : {{row.layout.output_activation}} , {{row.layout.output_initializer}} </pre>
                                                         </div>
 
                                                     <!--</div>-->

@@ -3,6 +3,7 @@ Created on Feb 8, 2017
 
 @author: julien
 '''
+import logging
 from keras.callbacks import EarlyStopping
 
 
@@ -84,13 +85,22 @@ class AccuracyDecreaseStoppingCondition(object):
 def get_associated_validation_metric(metric):
     if not metric:
         return None
+    if metric == 'mean_squared_error':
+        return 'loss'
     if metric.startswith('val_'):
         return metric
     return 'val_%s' % metric
 
 
-class StoppingConditionWrapper(EarlyStopping):
+def is_minimize_metric(metric):
+    print("In minimize metric {}".format(metric))
+    logging.info("In minimize metric {}".format(metric))
+    if metric == "loss" or metric == "mean_squared_error":
+        return True
+    return False
 
+
+class StoppingConditionWrapper(EarlyStopping):
     def __init__(self, condition):
         super().__init__(
             monitor=condition.get_monitor_metric(),

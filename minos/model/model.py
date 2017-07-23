@@ -8,10 +8,11 @@ Created on Feb 8, 2017
 class Layout(object):
 
     def __init__(self, input_size, output_size,
-                 output_activation, block=None, block_input=None, rows=None):
+                 output_activation, block=None, block_input=None, rows=None, output_initializer=None):
         self.input_size = int(input_size)
         self.output_size = int(output_size)
         self.output_activation = output_activation
+        self.output_initializer = output_initializer
         self.block = block
         self.block_input = block_input
         self.rows = rows or list()

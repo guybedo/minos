@@ -50,11 +50,10 @@ def _build_single_device_model(blueprint, device):
             row_input = _build_row_model(row_input, row)
         final_layer_input = _maybe_merge_inputs(row_input)
         predictions = Dense(
-            blueprint.layout.output_size,
-            activation=blueprint.layout.output_activation)(final_layer_input)
+            units=blueprint.layout.output_size,
+            activation=blueprint.layout.output_activation,
+            kernel_initializer=blueprint.layout.output_initializer)(final_layer_input)
         model = Model(inputs=inputs, outputs=predictions)
-        logging.info("Blueprint = {}, model = {}".format(blueprint,str(model.to_json())))
-        model.summary()
         return model
 
 
@@ -150,6 +149,7 @@ def _build_layer_parameters(layer):
         'activity_regularizer',
         'bias_regularizer',
         'kernel_regularizer',
+        'kernel_initializer'
         'gamma_regularizer',
         'beta_regularizer']
     for regularizer in regularizers:

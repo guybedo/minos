@@ -8,9 +8,9 @@ from random import Random, shuffle
 
 from minos.experiment.experiment import Blueprint
 from minos.experiment.training import Training
-from minos.model.model import Layout, Row, Layer, Block,\
+from minos.model.model import Layout, Row, Layer, Block, \
     Optimizer
-from minos.model.parameter import random_initial_param_value,\
+from minos.model.parameter import random_initial_param_value, \
     random_list_element, mutate_param
 
 
@@ -60,7 +60,8 @@ def _random_layout(layout, experiment_settings,
         layout.input_size,
         layout.output_size,
         layout.output_activation,
-        layout.block)
+        layout.block,
+        output_initializer=layout.output_initializer)
     if experiment_settings.is_layout_search():
         rows = random_initial_param_value(
             experiment_parameters.get_layout_parameter('rows'),
@@ -437,7 +438,8 @@ def _mix_layouts(parent_layouts, parameters, p_mutate_param=0.05, mutation_std=0
         output_size=parent_layouts[0].output_size,
         output_activation=parent_layouts[0].output_activation,
         block=parent_layouts[0].block,
-        block_input=parent_layouts[0].block_input)
+        block_input=parent_layouts[0].block_input,
+        output_initializer=parent_layouts[0].output_initializer)
     rows = random_list_element([len(p.rows) for p in parent_layouts])
     for row_idx in range(rows):
         parent_rows = [p.rows[row_idx] for p in parent_layouts if row_idx < len(p.rows)]
