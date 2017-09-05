@@ -23,6 +23,10 @@ reference_parameters = {
             'stackable': string_param([])}
     },
     'layers': {
+        'Embedding': {
+            'output_dim': int_param(1, 10000, default=1),
+            'input_dim': int_param(1, 10000, default=1),
+        },
         'Dense': {
             'units': int_param(1, 1000, default=100),
             'kernel_initializer': string_param(
@@ -61,6 +65,66 @@ reference_parameters = {
                 'l1': float_param(optional=True, default=None),
                 'l2': float_param(optional=True, default=None)
             },
+            'kernel_constraint': string_param(
+                ['maxnorm', 'nonneg', 'unitnorm'],
+                default=None,
+                optional=True),
+            'bias_constraint': string_param(
+                ['maxnorm', 'nonneg', 'unitnorm'],
+                default=None,
+                optional=True)
+        },
+        'LSTM': {
+            'units': int_param(1, 1000, default=100),
+            'dropout': float_param(default=0.0),
+            'recurrent_dropout': float_param(default=0.0),
+            'kernel_initializer': string_param(
+                ['uniform',
+                 'lecun_uniform',
+                 'normal',
+                 # 'identity',
+                 # 'orthogonal',
+                 'zero',
+                 'one',
+                 'glorot_normal',
+                 'glorot_uniform',
+                 'he_normal',
+                 'he_uniform'],
+                default='glorot_uniform'),
+            'recurrent_initializer': string_param(
+                ['uniform',
+                 'lecun_uniform',
+                 'normal',
+                 'identity',
+                 'orthogonal',
+                 'zero',
+                 'one',
+                 'glorot_normal',
+                 'glorot_uniform',
+                 'he_normal',
+                 'he_uniform'],
+                default='orthogonal'),
+            'recurrent_activation': string_param(
+                ['softmax',
+                 'softplus',
+                 'softsign',
+                 'relu',
+                 'tanh',
+                 'sigmoid',
+                 'hard_sigmoid',
+                 'linear'],
+                default='hard_sigmoid'),
+            'activation': string_param(
+                ['softmax',
+                 'softplus',
+                 'softsign',
+                 'relu',
+                 'tanh',
+                 'sigmoid',
+                 'hard_sigmoid',
+                 'linear'],
+                default='tanh'),
+            'use_bias': boolean_param(default=True),
             'kernel_constraint': string_param(
                 ['maxnorm', 'nonneg', 'unitnorm'],
                 default=None,

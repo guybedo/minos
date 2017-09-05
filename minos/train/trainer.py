@@ -153,7 +153,7 @@ class ModelTrainer(object):
 
 def model_training_worker(batch_iterator, test_batch_iterator,
                           device_id, device, work_queue, result_queue):
-    disable_sysout()
+    # disable_sysout()
     model_trainer = ModelTrainer(
         batch_iterator,
         test_batch_iterator)

@@ -124,6 +124,7 @@ def search(experiment,
     init_ga_env(experiment)
     population_size = experiment.settings.ga['population_size']
     generations = experiment.settings.ga['generations']
+    print("HERE IN SEARCH")
     if population:
         population = [
             toolbox.make_individual(individual)

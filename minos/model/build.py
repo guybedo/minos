@@ -3,7 +3,7 @@ Created on Feb 6, 2017
 
 @author: julien
 '''
-from copy import deepcopy
+import copy
 import logging
 import traceback
 
@@ -54,6 +54,7 @@ def _build_single_device_model(blueprint, device):
             activation=blueprint.layout.output_activation,
             kernel_initializer=blueprint.layout.output_initializer)(final_layer_input)
         model = Model(inputs=inputs, outputs=predictions)
+        model.summary()
         return model
 
 
@@ -144,7 +145,7 @@ def _get_layer_model(layer_type):
 
 
 def _build_layer_parameters(layer):
-    parameters = deepcopy(layer.parameters)
+    parameters = copy.copy(layer.parameters)
     regularizers = [
         'activity_regularizer',
         'bias_regularizer',

@@ -90,6 +90,7 @@ class SimpleBatchIterator(object):
 
     def __next__(self):
         try:
+            print("Here in __next__ {} ({})".format(self.index,self.batch_size))
             if self.index >= len(self.X):
                 shuffle_batch(self.X, self.y)
                 if self.autorestart or self.autoloop:
