@@ -33,7 +33,7 @@ def build_layout(input_size, output_size):
         block=[
             ('Dense', {'activation': 'relu'}),
             'Dropout',
-            ('Dense', {'output_dim': 100})])
+            ('Dense', {'units': 100})])
 
 
 def experiment_settings():
@@ -68,9 +68,9 @@ def custom_experiment_parameters():
     experiment_parameters.layout_parameter('blocks', 1)
     experiment_parameters.layout_parameter('blocks', 1)
     experiment_parameters.layout_parameter('layers', 1)
-    experiment_parameters.layer_parameter('Dense.output_dim', int_param(10, 500))
+    experiment_parameters.layer_parameter('Dense.units', int_param(10, 500))
     experiment_parameters.layer_parameter('Dense.activation', string_param(['relu', 'tanh']))
-    experiment_parameters.layer_parameter('Dropout.p', float_param(0.1, 0.9))
+    experiment_parameters.layer_parameter('Dropout.rate', float_param(0.1, 0.9))
     return experiment_parameters
 
 

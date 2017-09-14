@@ -12,15 +12,14 @@ import traceback
 from keras.callbacks import ModelCheckpoint
 import numpy
 
-from minos.experiment.training import EpochStoppingCondition,\
-    AccuracyDecreaseStoppingCondition, StoppingConditionWrapper,\
-    get_associated_validation_metric
+from minos.experiment.training import EpochStoppingCondition, \
+    AccuracyDecreaseStoppingCondition, StoppingConditionWrapper, \
+    get_associated_validation_metric, is_minimize_metric
 from minos.tf_utils import setup_tf_session
 from minos.utils import disable_sysout, load_keras_model
 
 
 class MultiProcessModelTrainer(object):
-
     def __init__(self, batch_iterator, test_batch_iterator, environment):
         self.batch_iterator = batch_iterator
         self.test_batch_iterator = test_batch_iterator
@@ -58,6 +57,7 @@ class MultiProcessModelTrainer(object):
                     work_queue.put((i, count, blueprint))
                 for _ in range(sum(self.environment.n_jobs)):
                     work_queue.put(None)
+
             Thread(target=_work_feeder).start()
 
             results = []
@@ -84,7 +84,6 @@ class MultiProcessModelTrainer(object):
 
 
 class ModelTrainer(object):
-
     def __init__(self, batch_iterator, test_batch_iterator):
         from minos.model.build import ModelBuilder
         self.model_builder = ModelBuilder()
@@ -92,7 +91,7 @@ class ModelTrainer(object):
         self.test_batch_iterator = test_batch_iterator
 
     def train(self, blueprint, device,
-              save_best_model=False, model_filename=None, class_weight=None):
+              save_best_model=False, model_filename=None, class_weight=None, verbose=2):
         try:
             model = self.model_builder.build(
                 blueprint,
@@ -106,13 +105,15 @@ class ModelTrainer(object):
                     blueprint.training.metric.metric))
             start = time()
             history = model.fit_generator(
-                self.batch_iterator,
-                self.batch_iterator.samples_per_epoch,
-                nb_epoch,
+                generator=self.batch_iterator,
+                steps_per_epoch=self.batch_iterator.samples_per_epoch,
+                epochs=nb_epoch,
                 callbacks=callbacks,
+                verbose=verbose,
                 validation_data=self.test_batch_iterator,
-                nb_val_samples=self.test_batch_iterator.sample_count,
+                validation_steps=self.test_batch_iterator.sample_count,
                 class_weight=class_weight)
+
             if save_best_model:
                 del model
                 model = load_keras_model(model_filename)
@@ -149,9 +150,10 @@ class ModelTrainer(object):
         return nb_epoch, stopping_callbacks
 
 
+
 def model_training_worker(batch_iterator, test_batch_iterator,
                           device_id, device, work_queue, result_queue):
-    disable_sysout()
+    # disable_sysout()
     model_trainer = ModelTrainer(
         batch_iterator,
         test_batch_iterator)
@@ -165,12 +167,18 @@ def model_training_worker(batch_iterator, test_batch_iterator,
             if model and history:
                 epoch_total = len(history.epoch)
                 val_metric = get_associated_validation_metric(blueprint.training.metric.metric)
-                epoch_best = numpy.argmax(history.history[val_metric])
-                score = history.history[val_metric][epoch_best]
+
+                if is_minimize_metric(val_metric):
+                    epoch_best = numpy.argmin(history.history[val_metric])
+                    score = history.history[val_metric][epoch_best]
+                else:
+                    epoch_best = numpy.argmax(history.history[val_metric])
+                    score = history.history[val_metric][epoch_best]
             else:
                 score, epoch_best, epoch_total = 0, 0, 0
             result_queue.put((idx, score, epoch_best, epoch_total, blueprint, duration, device_id))
             work = work_queue.get()
         except Exception as ex:
             logging.error(ex)
+            logging.error(traceback.format_exc())
     result_queue.put(None)

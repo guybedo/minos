@@ -63,9 +63,10 @@ class SimpleBatchIterator(object):
 
     def __init__(self, X, y, batch_size,
                  X_transform=None, y_transform=None,
-                 autoloop=False, autorestart=False, preload=False):
+                 autoloop=False, autorestart=False, preload=False,simple=False):
         self.X = X
         self.y = y
+        self.simple = simple
         self.batch_size = batch_size
         self.X_transform = X_transform
         self.y_transform = y_transform
@@ -90,18 +91,32 @@ class SimpleBatchIterator(object):
 
     def __next__(self):
         try:
-            if self.index >= len(self.X):
-                shuffle_batch(self.X, self.y)
-                if self.autorestart or self.autoloop:
-                    self.index = 0
-                if self.autorestart or not self.autoloop:
-                    return None
-            X, y = self._transform_data(
-                self.X[self.index],
-                self.y[self.index])
-            shuffle_batch(X, y)
-            self.index += 1
-            return X, y
+            if self.simple:
+                if self.index >= len(self.X):
+                    if self.autorestart or self.autoloop:
+                        self.index = 0
+                    if self.autorestart or not self.autoloop:
+                        return None
+                X = self.X[self.index]
+                y = self.y[self.index]
+                # print("Here in SIMPLE {} ({})\n\nReturning X, Y\n\n{}\n\n{}".format(self.index,self.batch_size, X.shape, y.shape))
+                self.index += 1
+                return X, y
+            else:
+                if self.index >= len(self.X):
+                    shuffle_batch(self.X, self.y)
+                    if self.autorestart or self.autoloop:
+                        self.index = 0
+                    if self.autorestart or not self.autoloop:
+                        return None
+                X, y = self._transform_data(
+                    self.X[self.index],
+                    self.y[self.index])
+                shuffle_batch(X, y)
+                self.index += 1
+                print("Here in __next__ DEFAULT {} ({})\n\nReturning X, Y\n\n{}\n\n{}".format(self.index,self.batch_size, X.shape, y.shape))
+                return X, y
+
         except Exception as ex:
             logging.error('Error while iterating %s' % str(ex))
             try:

@@ -73,9 +73,9 @@ def custom_experiment_parameters():
     experiment_parameters.layout_parameter('rows', 1)
     experiment_parameters.layout_parameter('blocks', int_param(1, 5))
     experiment_parameters.layout_parameter('layers', int_param(1, 5))
-    experiment_parameters.layer_parameter('Dense.output_dim', int_param(10, 100))
+    experiment_parameters.layer_parameter('Dense.units', int_param(10, 100))
     experiment_parameters.layer_parameter('Dense.activation', string_param(['relu', 'tanh', 'custom_activation_1']))
-    experiment_parameters.layer_parameter('Dropout.p', float_param(0.1, 0.9))
+    experiment_parameters.layer_parameter('Dropout.rate', float_param(0.1, 0.9))
     return experiment_parameters
 
 
@@ -134,7 +134,6 @@ def load_best_model(experiment_label, step):
     """
     blueprint = load_experiment_best_blueprint(
         experiment_label,
-        step,
         Environment())
     return ModelBuilder().build(
         blueprint,
