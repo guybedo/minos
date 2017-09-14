@@ -18,7 +18,7 @@ from minos.model.parameter import int_param
 from minos.tf_utils import cpu_device
 from minos.train.utils import CpuEnvironment, Environment
 from minos.utils import disable_sysout
-from tests.fixtures import get_reuters_dataset
+from minos_tests.fixtures import get_reuters_dataset
 
 
 class GaSearchTest(unittest.TestCase):

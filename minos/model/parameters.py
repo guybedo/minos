@@ -179,38 +179,38 @@ reference_parameters = {
         }
     },
     'optimizers': {
-        'SGD': {
+        'sgd': {
             'lr': float_param(default=1e-3),
             'momentum': float_param(default=0.0),
             'decay': float_param(default=0.0),
             'nesterov': boolean_param(default=False)},
-        'RMSprop': {
+        'rmsprop': {
             'lr': float_param(default=1e-3),
             'rho': float_param(default=0.9),
             'epsilon': float_param(default=1e-08),
             'decay': float_param(default=0.0)},
-        'Adagrad': {
+        'adagrad': {
             'lr': float_param(default=1e-3),
             'epsilon': float_param(default=1e-08),
             'decay': float_param(default=0.0)},
-        'Adadelta': {
+        'adadelta': {
             'lr': float_param(default=1e-3),
             'rho': float_param(default=0.9),
             'epsilon': float_param(default=1e-08),
             'decay': float_param(default=0.0)},
-        'Adam': {
+        'adam': {
             'lr': float_param(default=1e-3),
             'beta_1': float_param(default=0.9),
             'beta_2': float_param(default=0.999),
             'epsilon': float_param(default=1e-08),
             'decay': float_param(default=0.0)},
-        'Adamax': {
+        'adamax': {
             'lr': float_param(default=1e-3),
             'beta_1': float_param(default=0.9),
             'beta_2': float_param(default=0.999),
             'epsilon': float_param(default=1e-08),
             'decay': float_param(default=0.0)},
-        'Nadam': {
+        'nadam': {
             'lr': float_param(default=1e-3),
             'beta_1': float_param(default=0.9),
             'beta_2': float_param(default=0.999),

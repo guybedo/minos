@@ -19,7 +19,7 @@ from minos.tf_utils import default_device, cpu_device
 from minos.train.trainer import ModelTrainer
 from minos.train.utils import CpuEnvironment
 from minos.utils import disable_sysout
-from tests.fixtures import get_reuters_dataset
+from minos_tests.fixtures import get_reuters_dataset
 
 
 class TrainTest(unittest.TestCase):

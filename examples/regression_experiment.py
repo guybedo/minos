@@ -1,6 +1,8 @@
 import logging
 
 import sys
+from copy import deepcopy
+
 from keras.models import Sequential
 from keras.layers.core import Dense, Activation, Dropout
 from keras.datasets import boston_housing
@@ -14,6 +16,7 @@ from minos.experiment.ga import run_ga_search_experiment
 from minos.experiment.training import Training, EpochStoppingCondition
 from minos.model.model import Objective, Optimizer, Metric
 from minos.model.parameter import int_param, float_param
+from minos.model.parameters import register_custom_layer, reference_parameters
 
 from minos.train.utils import SimpleBatchIterator, CpuEnvironment
 from minos.train.utils import GpuEnvironment
@@ -30,13 +33,24 @@ X_train = scale.fit_transform(X_train)
 X_test = scale.fit_transform(X_test)
 
 
-def search_model(experiment_label, steps, batch_size=1):
-    batch_iterator = SimpleBatchIterator(X_train, y_train, batch_size=1, autoloop=True)
-    test_batch_iterator = SimpleBatchIterator(X_test, y_test, batch_size=1, autoloop=True)
+
+
+def search_model(experiment_label, steps, batch_size=1,epochs=10):
+    batch_iterator = SimpleBatchIterator(X_train, y_train, batch_size=batch_size, autoloop=True)
+    test_batch_iterator = SimpleBatchIterator(X_test, y_test, batch_size=batch_size, autoloop=True)
     from minos.experiment.experiment import Experiment
 
     from minos.model.model import Layout
-
+    register_custom_layer(
+        'Dense2',
+        Dense,
+        deepcopy(reference_parameters['layers']['Dense']),
+        True)
+    register_custom_layer(
+            'Dense3',
+            Dense,
+            deepcopy(reference_parameters['layers']['Dense']),
+            True)
     layout = Layout(
         X_train.shape[1],  # Input size, 13 features I think
         1,  # Output size, we want just the price
@@ -44,8 +58,8 @@ def search_model(experiment_label, steps, batch_size=1):
         output_initializer='normal',
         # Our template, just one block with two dense layers
         block=[
-            ('Dense', {'kernel_initializer': 'normal', 'activation': 'relu'}),
-            ('Dense', {'kernel_initializer': 'normal', 'activation': 'relu'})
+            ('Dense2', {'kernel_initializer': 'normal', 'activation': 'relu'}),
+            ('Dense3', {'kernel_initializer': 'normal', 'activation': 'relu'})
         ]
     )
 
@@ -54,7 +68,7 @@ def search_model(experiment_label, steps, batch_size=1):
         Objective('mean_squared_error'),
         Optimizer(optimizer='Adam'),
         Metric('mean_squared_error'),
-        EpochStoppingCondition(50),
+        EpochStoppingCondition(epochs),
         1)
 
     from minos.experiment.experiment import ExperimentParameters
@@ -64,7 +78,8 @@ def search_model(experiment_label, steps, batch_size=1):
     experiment_parameters.layout_parameter('rows', 1)
     experiment_parameters.layout_parameter('blocks', 1)
     experiment_parameters.layout_parameter('layers', 1)
-    experiment_parameters.layer_parameter('Dense.units', int_param(1, 20))
+    experiment_parameters.layer_parameter('Dense2.units', int_param(1, 20))
+    experiment_parameters.layer_parameter('Dense3.units', int_param(20, 40))
 
     experiment_settings.ga['population_size'] = 10
     experiment_settings.ga['generations'] = steps
@@ -93,12 +108,12 @@ def search_model(experiment_label, steps, batch_size=1):
 
 
 def main():
-    label = 'regression_experiment_v22'
+    label = 'regression_experiment_v27'
     steps = 5
 
     # Load the model if it exists, otherwise do a new search
     try:
-        model = load_best_model(label, steps - 1, X_train, y_train, X_test, y_test, batch_size=1, epochs=50)
+        model = load_best_model(label, steps - 1, X_train, y_train, X_test, y_test, batch_size=5, epochs=10)
     except Exception:
         model = search_model(label, steps)
 

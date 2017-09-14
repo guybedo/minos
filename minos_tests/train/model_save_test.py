@@ -18,7 +18,7 @@ from minos.model.parameters import register_custom_activation,\
 from minos.tf_utils import default_device
 from minos.train.utils import CpuEnvironment
 from minos.utils import disable_sysout, load_keras_model
-from tests.fixtures import get_reuters_dataset, CustomLayer
+from minos_tests.fixtures import get_reuters_dataset, CustomLayer
 
 
 class ModelSaveTest(unittest.TestCase):

@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="en" ng-app="Minos">
+<html lang="en" ng-app="Sisy">
 <head>
     <meta charset="utf-8"/>
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
 
-    <title>Minos</title>
+    <title>Sisy</title>
 
     <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport'/>
     <meta name="viewport" content="width=device-width"/>
@@ -31,7 +31,7 @@
     <link href="assets/css/themify-icons.css" rel="stylesheet">
 
 </head>
-<body ng-controller="MinosCtrl">
+<body ng-controller="SisyCtrl">
 
 <div class="wrapper">
     <div class="sidebar" data-background-color="white" data-active-color="danger">
@@ -44,7 +44,7 @@
         <div class="sidebar-wrapper">
             <div class="logo">
                 <a href="#" class="simple-text">
-                    Minos<br/>
+                    Sisy<br/>
 
                 </a>
             </div>
@@ -323,8 +323,8 @@
                                         <td>{{row.training.metric.metric}}</td>
                                         <td>{{row.training.optimizer.optimizer}}</td>
                                         <td>
-                                            <div ng-repeat="minos_row in row.layout.rows">
-                                                <div ng-repeat="block in minos_row.blocks">
+                                            <div ng-repeat="sisy_row in row.layout.rows">
+                                                <div ng-repeat="block in sisy_row.blocks">
                                                     <!--<div ng-repeat="block in blocks" >-->
 
                                                         <div style="background-color: white;padding: 5px;border-radius: 5px;font-size: 1.2em;">
@@ -368,7 +368,7 @@
                     <ul>
 
                         <li>
-                            <a href="https://github.com/guybedo/minos">
+                            <a href="https://github.com/guybedo/sisy">
                                 Github Link
                             </a>
                         </li>
@@ -434,7 +434,7 @@
         _.extend(Events, Backbone.Events);
 
 //
-        angular.module('Minos', ['ngSanitize']).controller('MinosCtrl', ['$scope', function ($scope) {
+        angular.module('Sisy', ['ngSanitize']).controller('SisyCtrl', ['$scope', function ($scope) {
 
 
             $scope.experimentData = [];

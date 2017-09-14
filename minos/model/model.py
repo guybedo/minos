@@ -114,8 +114,8 @@ class Objective(object):
 
 class Optimizer(object):
 
-    def __init__(self, optimizer=None, parameters=None):
-        self.optimizer = optimizer
+    def __init__(self, optimizer : str =None, parameters=None):
+        self.optimizer = optimizer.lower()
         self.parameters = parameters or dict()
 
     def todict(self):

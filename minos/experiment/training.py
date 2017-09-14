@@ -93,8 +93,6 @@ def get_associated_validation_metric(metric):
 
 
 def is_minimize_metric(metric):
-    print("In minimize metric {}".format(metric))
-    logging.info("In minimize metric {}".format(metric))
     if metric == "loss" or metric == "mean_squared_error" \
             or metric == "mean_absolute_error":
         return True

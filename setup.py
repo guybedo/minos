@@ -2,13 +2,13 @@ from setuptools import find_packages
 from setuptools import setup
 
 
-setup(name='pyminos',
-      version='0.5.1',
-      description='Neural nets hyper parameters & architecture search with genetic algorithms',
+setup(name='pysisy',
+      version='0.1',
+      description='Graphical UI and training shorthand for neural nets hyper parameters & architecture search with genetic algorithms',
       keywords=['keras', 'genetic algorithm', 'neural network', 'deep learning'],
-      author='Julien Roch',
-      author_email='julien.roch@akalea.com',
-      url='https://github.com/guybedo/minos',
+      author='Charlie Sanders originally Julien Roch',
+      author_email='charlie.fats@gmail.com',
+      url='https://github.com/qorrect/minos',
       license='Apache',
       setup_requires=[
           'numpy>=1.12'],

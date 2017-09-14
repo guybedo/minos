@@ -3,8 +3,7 @@ Created on Feb 18, 2017
 
 @author: julien
 '''
-from genericpath import isfile
-from os.path import join
+from multiprocessing import Pool
 import tempfile
 import unittest
 
@@ -12,20 +11,34 @@ from minos.experiment.experiment import ExperimentParameters, Experiment
 from minos.experiment.training import Training, EpochStoppingCondition
 from minos.model.design import create_random_blueprint
 from minos.model.model import Layout, Objective, Optimizer, Metric
-from minos.tf_utils import cpu_device
-from minos.train.trainer import ModelTrainer
+from minos.tf_utils import default_device
 from minos.train.utils import CpuEnvironment
 from minos.utils import disable_sysout
-from tests.fixtures import get_reuters_dataset
+from minos_tests.fixtures import get_reuters_dataset
+
+
+batch_size = 50
+batch_iterator, test_batch_iterator, nb_classes = get_reuters_dataset(batch_size, 1000)
+
+
+def multiprocess_fit(blueprint):
+    disable_sysout()
+    from minos.model.build import ModelBuilder
+    model = ModelBuilder().build(blueprint, default_device())
+    model.fit_generator(
+        generator=batch_iterator,
+        steps_per_epoch=batch_iterator.samples_per_epoch,
+        epochs=10,
+        validation_data=test_batch_iterator,
+        validation_steps=test_batch_iterator.sample_count)
 
 
 class TrainTest(unittest.TestCase):
 
-    def test_model_trainer(self):
-        disable_sysout()
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            batch_size = 50
-            batch_iterator, test_batch_iterator, nb_classes = get_reuters_dataset(batch_size, 1000)
+    def test_train(self):
+        n_jobs = 2
+        with Pool(n_jobs) as pool,\
+                tempfile.TemporaryDirectory() as tmp_dir:
             layout = Layout(
                 input_size=1000,
                 output_size=nb_classes,
@@ -49,20 +62,10 @@ class TrainTest(unittest.TestCase):
                 CpuEnvironment(n_jobs=1, data_dir=tmp_dir),
                 parameters=experiment_parameters)
 
-            blueprint = create_random_blueprint(experiment)
-            trainer = ModelTrainer(batch_iterator, test_batch_iterator)
-            model_filename = join(tmp_dir, 'model')
-            model, history, _duration = trainer.train(
-                blueprint,
-                [cpu_device(), cpu_device()],
-                save_best_model=True,
-                model_filename=model_filename)
-            model.predict(test_batch_iterator.X[0], len(test_batch_iterator.X[0]))
-            self.assertIsNotNone(
-                model,
-                'should have fit the model')
-            self.assertTrue(isfile(model_filename), 'Should have saved the model')
-            self.assertIsNotNone(history, 'Should have the training history')
+            blueprints = [
+                create_random_blueprint(experiment)
+                for _ in range(n_jobs)]
+            pool.map(multiprocess_fit, blueprints)
 
 
 if __name__ == "__main__":

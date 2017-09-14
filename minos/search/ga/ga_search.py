@@ -90,7 +90,7 @@ def evolve(population=None, population_size=50,
            offsprings=2, p_aliens=0.25, aliens=0.1, generation_logger=None, fitness_type=False):
     population = population or toolbox.population(n=population_size)
     for generation in range(population_age, generations):
-        logging.info('Evolving generation {} of {} with {}'.format(generation, generations, fitness_type))
+        logging.info('Evolving generation {} of {} ( {} )   '.format(generation, generations, fitness_type))
         fit_invalid_individuals(population)
         population = sort_population(population, population_size, fitness_type == 'FitnessMin')
         if generation_logger:
@@ -124,7 +124,6 @@ def search(experiment,
     init_ga_env(experiment)
     population_size = experiment.settings.ga['population_size']
     generations = experiment.settings.ga['generations']
-    print("HERE IN SEARCH")
     if population:
         population = [
             toolbox.make_individual(individual)
