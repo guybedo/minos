@@ -11,9 +11,9 @@ setup(name='pyminos',
       url='https://github.com/guybedo/minos',
       license='Apache',
       setup_requires=[
-          'numpy>=1.12'],
+          'numpy>=1.12.0'],
       install_requires=[
-          'numpy>=1.12',
+          'numpy>=1.12.0',
           'keras',
           'deap>=1.0.2'],
       extras_require={
