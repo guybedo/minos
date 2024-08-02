@@ -14,7 +14,7 @@ setup(name='pyminos',
           'numpy>=1.12'],
       install_requires=[
           'numpy>=1.12',
-          'keras==1.2.2',
+          'keras==2.13.1',
           'deap>=1.2.0'],
       extras_require={
           'h5py': ['h5py'],
